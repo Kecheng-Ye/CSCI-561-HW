@@ -2,6 +2,7 @@ package SkiProblem;
 
 import Problem.*;
 import Search.Result;
+import Search.SearchMethod;
 import Search.SearchSolver;
 
 import java.util.ArrayList;
