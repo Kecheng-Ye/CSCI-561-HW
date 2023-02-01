@@ -2,8 +2,8 @@ package SkiProblem;
 
 import Problem.Action;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +21,8 @@ public class SkiAction extends Action {
 
     public final Direction direction;
     public static final List<SkiAction> ALL_ACTIONS = Arrays.stream(Direction.values()).map(dir -> new SkiAction(dir)).collect(Collectors.toList());
+    public static final HashSet<Direction> verticalOrHorizontalMove = new HashSet<>(List.of(Direction.South, Direction.East, Direction.West, Direction.North));
+    public static final HashSet<Direction> DiagonalMove = new HashSet<>(List.of(Direction.NorthEast, Direction.NorthWest, Direction.SouthEast, Direction.SouthWest));
 
     public SkiAction(Direction direction) {
         this.direction = direction;

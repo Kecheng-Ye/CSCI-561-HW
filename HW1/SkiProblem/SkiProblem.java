@@ -18,6 +18,8 @@ public class SkiProblem implements Problem<SkiState, SkiAction> {
     final List<Coordinate> lodgeCoordinates;
     int curDestIdx;
     SearchMethod searchMethod = null;
+    private static int VERTICAL_OR_HORIZONTAL_MOVE_COST = 10;
+    private static int DIANGOL_MOVE_COST = 14;
 
     public SkiProblem(final int mapWidth, final int mapHeight, List<List<Integer>> map, final Coordinate startCoordinate, final int stamina, final List<Coordinate> lodgeCoordinates) {
         this.mapWidth = mapWidth;
@@ -42,7 +44,13 @@ public class SkiProblem implements Problem<SkiState, SkiAction> {
             }
 
             case UNIFORM_COST_SEARCH: {
-                return -2;
+                if (SkiAction.verticalOrHorizontalMove.contains(action.direction)) {
+                    return VERTICAL_OR_HORIZONTAL_MOVE_COST;
+                } else if (SkiAction.DiagonalMove.contains(action.direction)) {
+                    return DIANGOL_MOVE_COST;
+                } else {
+                    throw new IllegalArgumentException();
+                }
             }
 
             case A_STAR_SEARCH: {

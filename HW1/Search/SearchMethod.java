@@ -15,6 +15,10 @@ public enum SearchMethod {
                 return new BFS();
             }
 
+            case UNIFORM_COST_SEARCH: {
+                return new UniformCostSearch();
+            }
+
             default: {
                 return null;
             }

@@ -3,30 +3,32 @@ package Search;
 import Problem.*;
 import java.util.*;
 
-class QueueWithHashSet<T>{
-    Queue<T> queue;
-    HashSet<T> hashSet;
+class QueueWithHashSetForNode<S extends State, A extends Action>{
+    Queue<Node<S, A>> queue;
+    HashSet<S> hashSet;
 
-    public QueueWithHashSet(Collection<T> list) {
+    public QueueWithHashSetForNode(Collection<Node<S, A>> list) {
         queue = new LinkedList<>(list);
-        hashSet = new HashSet<>(list);
+        hashSet = new HashSet<>();
+        list.forEach(node -> hashSet.add(node.state));
     }
 
-    public boolean add(T val) {
+    public boolean add(Node<S, A> val) {
         queue.add(val);
-        hashSet.add(val);
+        hashSet.add(val.state);
         return true;
     }
 
-    public T pop() {
-        T val = queue.poll();
-        hashSet.remove(val);
+    public Node<S, A> pop() {
+        Node<S, A> val = queue.poll();
+        assert val != null;
+        hashSet.remove(val.state);
 
         return val;
     }
 
-    public boolean contains(T val) {
-        return hashSet.contains(val);
+    public boolean contains(S state) {
+        return hashSet.contains(state);
     }
 
     public boolean isEmpty() {
@@ -41,8 +43,8 @@ public class BFS implements SearchSolver {
             return Result.successfulResult(solutionGenerator.generate(startNode));
         }
 
-        QueueWithHashSet<Node<S, A>> frontier = new QueueWithHashSet<>(List.of(startNode));
-        HashSet<Node<S, A>> explored = new HashSet<>();
+        QueueWithHashSetForNode<S, A> frontier = new QueueWithHashSetForNode<S, A>(List.of(startNode));
+        HashSet<S> explored = new HashSet<>();
 
         while(true) {
             if (frontier.isEmpty()) {
@@ -50,16 +52,12 @@ public class BFS implements SearchSolver {
             }
 
             Node<S, A> node = frontier.pop();
-            explored.add(node);
+            explored.add(node.state);
 
             for (A action : problem.validActions(node.state)) {
                 Node<S, A> child = ChildNodeGenerator.generate(problem, node, action);
-//                System.out.println(child.state);
-//                System.out.println(explored);
-//                System.out.println(explored.contains(child));
-//                System.out.println(frontier.contains(child));
 
-                if (!explored.contains(child) && !frontier.contains(child)) {
+                if (!explored.contains(child.state) && !frontier.contains(child.state)) {
                     if (problem.isGoalMeet(child.state)) {
                         return Result.successfulResult(solutionGenerator.generate(child));
                     }

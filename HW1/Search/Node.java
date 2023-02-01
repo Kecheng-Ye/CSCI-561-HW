@@ -24,16 +24,16 @@ public class Node<S extends State, A extends Action> {
         this.pathCost = pathCost;
     }
 
-    @Override
-    public int hashCode() {
-        return state.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (! (obj instanceof Node)) {
-            return false;
-        }
-        return state.equals(((Node<?, ?>) obj).state);
-    }
+//    @Override
+//    public int hashCode() {
+//        return state.hashCode();
+//    }
+//
+//    @Override
+//    public boolean equals(Object obj) {
+//        if (! (obj instanceof Node)) {
+//            return false;
+//        }
+//        return state.equals(((Node<?, ?>) obj).state);
+//    }
 }
