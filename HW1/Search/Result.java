@@ -25,9 +25,9 @@ public class Result<T extends Solution> {
     @Override
     public String toString() {
         if (resultType == Type.FAILURE) {
-            return "FAILED";
+            return "FAIL";
         } else {
-            return String.format("SUCCESS with Solution = %s", solution);
+            return solution.toString();
         }
     }
 }

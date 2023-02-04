@@ -1,9 +1,7 @@
 package SkiProblem;
 
 import Problem.*;
-import Search.Result;
-import Search.SearchMethod;
-import Search.SearchSolver;
+import Search.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,11 +13,21 @@ public class SkiProblem implements Problem<SkiState, SkiAction> {
     final List<List<Integer>> map;
     final Coordinate startCoordinate;
     final int stamina;
-    final List<Coordinate> lodgeCoordinates;
+    List<Coordinate> lodgeCoordinates;
     int curDestIdx;
     SearchMethod searchMethod = null;
     private static int VERTICAL_OR_HORIZONTAL_MOVE_COST = 10;
     private static int DIANGOL_MOVE_COST = 14;
+
+    public final Heuristic DiagnaolWalking = state -> {
+        assert state instanceof SkiState;
+        final SkiState skiState = (SkiState) state;
+        
+        final int horizontalDist = Math.abs(skiState.curCoordinate.x - lodgeCoordinates.get(curDestIdx).x);
+        final int verticalDist = Math.abs(skiState.curCoordinate.y - lodgeCoordinates.get(curDestIdx).y);
+
+        return Math.min(horizontalDist, verticalDist) * DIANGOL_MOVE_COST + Math.abs(horizontalDist - verticalDist) * VERTICAL_OR_HORIZONTAL_MOVE_COST;
+    };
 
     public SkiProblem(final int mapWidth, final int mapHeight, List<List<Integer>> map, final Coordinate startCoordinate, final int stamina, final List<Coordinate> lodgeCoordinates) {
         this.mapWidth = mapWidth;
@@ -33,7 +41,37 @@ public class SkiProblem implements Problem<SkiState, SkiAction> {
 
     @Override
     public SkiState initialState() {
-        return new SkiState(startCoordinate);
+        return new SkiState(startCoordinate, startCoordinate, (searchMethod == SearchMethod.A_STAR_SEARCH));
+    }
+
+    private static int calculateHorizontalMoveCost(SkiAction action) {
+        if (SkiAction.verticalOrHorizontalMove.contains(action.direction)) {
+            return VERTICAL_OR_HORIZONTAL_MOVE_COST;
+        } else if (SkiAction.DiagonalMove.contains(action.direction)) {
+            return DIANGOL_MOVE_COST;
+        } else {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    private int calculateElevationChangeCost(SkiState state, SkiAction action) {
+        final Coordinate prevCoord = state.prevCoordinate;
+        final Coordinate curCoord = state.curCoordinate;
+        final Coordinate nextCoord = action.performAction(state.curCoordinate);
+
+        final int E_prev = Math.abs(map.get(prevCoord.y).get(prevCoord.x));
+        final int E_curr = Math.abs(map.get(curCoord.y).get(curCoord.x));
+        final int E_next = map.get(nextCoord.y).get(nextCoord.x);
+        final int momentum = ((E_next - E_curr) > 0) ? Math.max(0, E_prev - E_curr) : 0;
+
+        return ((E_next - E_curr) <= momentum) ? 0 : Math.max(0, E_next - E_curr - momentum);
+    }
+
+    private int calculateCostAStar(SkiState state, SkiAction action) {
+        int horizontalMoveDistance = calculateHorizontalMoveCost(action);
+        int elevationChangeCost = calculateElevationChangeCost(state, action);
+
+        return horizontalMoveDistance + elevationChangeCost;
     }
 
     @Override
@@ -44,21 +82,15 @@ public class SkiProblem implements Problem<SkiState, SkiAction> {
             }
 
             case UNIFORM_COST_SEARCH: {
-                if (SkiAction.verticalOrHorizontalMove.contains(action.direction)) {
-                    return VERTICAL_OR_HORIZONTAL_MOVE_COST;
-                } else if (SkiAction.DiagonalMove.contains(action.direction)) {
-                    return DIANGOL_MOVE_COST;
-                } else {
-                    throw new IllegalArgumentException();
-                }
+                return calculateHorizontalMoveCost(action);
             }
 
             case A_STAR_SEARCH: {
-                return -3;
+                return calculateCostAStar(state, action);
             }
 
             default: {
-                return -1;
+                throw new RuntimeException();
             }
         }
     }
@@ -72,13 +104,7 @@ public class SkiProblem implements Problem<SkiState, SkiAction> {
         );
     }
 
-    private boolean isActionValid(final SkiState state, final SkiAction action) {
-        final Coordinate oldCoord = state.coordinate;
-        final Coordinate newCoord = action.performAction(state.coordinate);
-        if (!isCoordinateValid(newCoord)) {
-            return false;
-        }
-
+    private boolean isMoveValid_BFS_UCS(final Coordinate oldCoord, final Coordinate newCoord) {
         final int startElevation = Math.abs(map.get(oldCoord.y).get(oldCoord.x));
         final int endElevation = map.get(newCoord.y).get(newCoord.x);
 
@@ -91,7 +117,37 @@ public class SkiProblem implements Problem<SkiState, SkiAction> {
         } else {
             return true;
         }
+    }
 
+    private boolean isMoveValid_A_STAR(final Coordinate prevCoord, final Coordinate curCoord, final Coordinate nextCoord) {
+        final int E_prev = Math.abs(map.get(prevCoord.y).get(prevCoord.x));
+        final int E_curr = Math.abs(map.get(curCoord.y).get(curCoord.x));
+        final int E_next = map.get(nextCoord.y).get(nextCoord.x);
+
+        if (E_next < 0) {
+            return E_curr >= Math.abs(E_next);
+        }
+
+        final int momentum = ((E_next - E_curr) > 0) ? Math.max(0, E_prev - E_curr) : 0;
+
+        return E_curr + momentum + stamina >= E_next;
+    }
+
+    private boolean isActionValid(final SkiState state, final SkiAction action) {
+        final Coordinate prevCoord = state.prevCoordinate;
+        final Coordinate curCoord = state.curCoordinate;
+        final Coordinate nextCoord = action.performAction(state.curCoordinate);
+        if (!isCoordinateValid(nextCoord)) {
+            return false;
+        }
+
+        if (searchMethod == SearchMethod.BFS || searchMethod == SearchMethod.UNIFORM_COST_SEARCH) {
+            return isMoveValid_BFS_UCS(curCoord, nextCoord);
+        } else if (searchMethod == SearchMethod.A_STAR_SEARCH) {
+            return isMoveValid_A_STAR(prevCoord, curCoord, nextCoord);
+        }
+
+        return false;
     }
 
     @Override
@@ -103,23 +159,28 @@ public class SkiProblem implements Problem<SkiState, SkiAction> {
 
     @Override
     public boolean isGoalMeet(SkiState state) {
-        return state.coordinate.equals(lodgeCoordinates.get(curDestIdx));
+        return state.curCoordinate.equals(lodgeCoordinates.get(curDestIdx));
     }
 
     @Override
     public SkiState result(SkiState state, SkiAction action) {
-        return new SkiState(action.performAction(state.coordinate));
+        return new SkiState(state.curCoordinate, action.performAction(state.curCoordinate), (searchMethod == SearchMethod.A_STAR_SEARCH));
     }
 
     public List<Result<SkiSolution>> solve(SearchMethod searchMethod) {
         this.searchMethod = searchMethod;
         final SearchSolver solver = this.searchMethod.solver();
+
+        assert solver != null;
+        if (searchMethod == SearchMethod.A_STAR_SEARCH) {
+            ((AStarSearch)solver).setHeuristic(DiagnaolWalking);
+        }
+
         this.curDestIdx = 0;
         final SkiSolutionGenerator skiSolutionGenerator = new SkiSolutionGenerator();
         ArrayList<Result<SkiSolution>> answers = new ArrayList<>();
 
         for (; curDestIdx < lodgeCoordinates.size(); curDestIdx++) {
-            assert solver != null;
             answers.add(solver.solve(this, skiSolutionGenerator));
         }
 

@@ -1,10 +1,13 @@
+import Search.Result;
 import Search.SearchMethod;
-import SkiProblem.SkiProblem;
-import SkiProblem.SkiProblemParser;
+import SkiProblem.*;
 
-public class main {
+import java.util.List;
+
+public class homework {
     public static void main(String[] args) {
-        final String INPUT_FILE_PATH = "UCS_Test_Input.txt";
+        final String INPUT_FILE_PATH = "A*_TEST_FILE.txt";
+        final String OUTPUT_FILE_PATH = "output.txt";
         SkiProblemParser.SkiProblemParserResult parserResult = SkiProblemParser.parseFromText(INPUT_FILE_PATH);
         if (parserResult == null) {
             return;
@@ -12,6 +15,8 @@ public class main {
 
         SkiProblem problem = parserResult.problem;
         SearchMethod searchMethod = parserResult.searchMethod;
-        System.out.println(problem.solve(searchMethod));
+        List<Result<SkiSolution>> results = problem.solve(searchMethod);
+
+        SkiProblemSolutionFileWritter.writeSolutionsToFile(OUTPUT_FILE_PATH, results);
     }
 }

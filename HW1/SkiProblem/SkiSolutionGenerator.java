@@ -13,7 +13,7 @@ public class SkiSolutionGenerator implements SolutionGenerator<SkiSolution, SkiS
         Node<SkiState, SkiAction> temp = node;
 
         while (temp != null) {
-            answer.addFirst(temp.state.coordinate);
+            answer.addFirst(temp.state.curCoordinate);
 
             temp = temp.parent;
         }

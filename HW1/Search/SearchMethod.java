@@ -19,6 +19,10 @@ public enum SearchMethod {
                 return new UniformCostSearch();
             }
 
+            case A_STAR_SEARCH: {
+                return new AStarSearch();
+            }
+
             default: {
                 return null;
             }
