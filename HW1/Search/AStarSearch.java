@@ -33,7 +33,7 @@ public class AStarSearch implements SearchSolver{
         }
 
         // use path cost + heuristic cost as the comparator of the pq
-        final PriorityQueueWithHashSetForNode<S, A> frontier = new PriorityQueueWithHashSetForNode<S, A>(List.of(startNode), Comparator.comparingInt(node -> node.pathCost + node.heuristicScore));
+        final PriorityQueueWithHashSetForNode<S, A> frontier = new PriorityQueueWithHashSetForNode<S, A>(List.of(startNode), Comparator.comparingLong(node -> node.pathCost + node.heuristicScore));
         final HashSet<S> explored = new HashSet<>();
 
         while (true) {

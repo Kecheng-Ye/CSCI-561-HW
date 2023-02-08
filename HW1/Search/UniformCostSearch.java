@@ -69,7 +69,7 @@ public class UniformCostSearch implements SearchSolver{
             return Result.successfulResult(solutionGenerator.generate(startNode));
         }
 
-        final PriorityQueueWithHashSetForNode<S, A> frontier = new PriorityQueueWithHashSetForNode<S, A>(List.of(startNode), Comparator.comparingInt(node -> node.pathCost));       // use path cost as the comparator of the pq
+        final PriorityQueueWithHashSetForNode<S, A> frontier = new PriorityQueueWithHashSetForNode<S, A>(List.of(startNode), Comparator.comparingLong(node -> node.pathCost));       // use path cost as the comparator of the pq
         final HashSet<S> explored = new HashSet<>();
 
         while (true) {

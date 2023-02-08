@@ -7,10 +7,10 @@ public class Node<S extends State, A extends Action> {
     public final S state;
     public final Node<S, A> parent;
     public final A action;
-    public final int pathCost;
-    public final int heuristicScore;
+    public final long pathCost;
+    public final long heuristicScore;
 
-    public Node(final S state, final Node<S, A> parent, final A action, final int pathCost) {
+    public Node(final S state, final Node<S, A> parent, final A action, final long pathCost) {
         this.state = state;
         this.parent = parent;
         this.action = action;
@@ -18,7 +18,7 @@ public class Node<S extends State, A extends Action> {
         this.heuristicScore = 0;
     }
 
-    public Node(final S state, final Node<S, A> parent, final A action, final int pathCost, final int heuristicScore) {
+    public Node(final S state, final Node<S, A> parent, final A action, final long pathCost, final long heuristicScore) {
         this.state = state;
         this.parent = parent;
         this.action = action;
@@ -26,7 +26,7 @@ public class Node<S extends State, A extends Action> {
         this.heuristicScore = heuristicScore;
     }
 
-    public Node(final S state, final int pathCost) {
+    public Node(final S state, final long pathCost) {
         this.state = state;
         this.parent = null;
         this.action = null;

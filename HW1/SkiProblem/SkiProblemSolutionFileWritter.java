@@ -14,6 +14,9 @@ public class SkiProblemSolutionFileWritter {
             outputFile.createNewFile();
             FileWriter myWriter = new FileWriter(filePath);
             for (final Result<SkiSolution> solution : solutions) {
+//                if (solution.resultType == Result.Type.SUCCESS) {
+//                    System.out.println(solution.solution.pathCost);
+//                }
                 myWriter.write(solution.toString() + "\n");
             }
             myWriter.close();

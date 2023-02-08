@@ -1,13 +1,13 @@
 package Search;
 
 public class Result<T extends Solution> {
-    enum Type {
+    public enum Type {
         SUCCESS,
         FAILURE
     }
 
-    Type resultType;
-    T solution;
+    public final Type resultType;
+    public final T solution;
 
     private Result(Type type, T solution) {
         this.resultType = type;

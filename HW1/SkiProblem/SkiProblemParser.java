@@ -53,9 +53,9 @@ public class SkiProblemParser {
             }
 
             // Next H Lines
-            List<List<Integer>> map = new ArrayList<>();
+            List<List<Long>> map = new ArrayList<>();
             for(int i = 0; i < height; i++) {
-                List<Integer> oneRow = read_N_Number(fileReader, width);
+                List<Long> oneRow = read_N_Long_Number(fileReader, width);
                 map.add(oneRow);
             }
 
@@ -81,13 +81,24 @@ public class SkiProblemParser {
     }
 
     private static List<Integer> read_N_Number(Scanner fileReader, int n) {
-        String mapDimension = fileReader.nextLine();
+        String mapDimension = fileReader.nextLine().strip().replaceAll("\\s+", " ");
         String[] splitStrArr = mapDimension.split(" ");
         assert splitStrArr.length == n;
-        return Arrays.stream(splitStrArr).map(Integer::parseInt).collect(Collectors.toList());
+        return Arrays.stream(splitStrArr).map(numStr -> Integer.parseInt(numStr.strip())).collect(Collectors.toList());
     }
 
     private static List<Integer> readTwoNumber(Scanner fileReader) {
         return read_N_Number(fileReader, 2);
     }
+
+    private static List<Long> read_N_Long_Number(Scanner fileReader, int n) {
+        String mapDimension = fileReader.nextLine().strip().replaceAll("\\s+", " ");
+        String[] splitStrArr = mapDimension.split(" ");
+        assert splitStrArr.length == n;
+        return Arrays.stream(splitStrArr).map(numStr -> Long.parseLong(numStr.strip())).collect(Collectors.toList());
+    }
+
+//    private static List<Long> readTwoNumber(Scanner fileReader) {
+//        return read_N_Number(fileReader, 2);
+//    }
 }

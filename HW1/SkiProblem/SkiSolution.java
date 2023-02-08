@@ -6,9 +6,11 @@ import java.util.List;
 
 public class SkiSolution extends Solution {
     List<Coordinate> stepCoords;
+    public long pathCost;
 
-    public SkiSolution(final List<Coordinate> answer) {
+    public SkiSolution(final List<Coordinate> answer, final long pathCost) {
         stepCoords = answer;
+        this.pathCost = pathCost;
     }
 
     @Override

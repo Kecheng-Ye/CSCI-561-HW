@@ -9,6 +9,7 @@ public class SkiSolutionGenerator implements SolutionGenerator<SkiSolution, SkiS
 
     @Override
     public SkiSolution generate(Node<SkiState, SkiAction> node) {
+        assert node != null;
         LinkedList<Coordinate> answer = new LinkedList<>();
         Node<SkiState, SkiAction> temp = node;
 
@@ -18,6 +19,6 @@ public class SkiSolutionGenerator implements SolutionGenerator<SkiSolution, SkiS
             temp = temp.parent;
         }
 
-        return new SkiSolution(answer);
+        return new SkiSolution(answer, node.pathCost);
     }
 }

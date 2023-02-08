@@ -15,5 +15,5 @@ public interface Problem<S extends State, A extends Action> {
     public List<A> validActions(S state);
 
     // Path cost
-    public int calculateCost(S state, A action);
+    public long calculateCost(S state, A action);
 }

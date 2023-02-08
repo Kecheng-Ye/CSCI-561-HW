@@ -10,14 +10,14 @@ import java.util.stream.Collectors;
 public class SkiProblem implements Problem<SkiState, SkiAction> {
     final int mapWidth;
     final int mapHeight;
-    final List<List<Integer>> map;
+    final List<List<Long>> map;
     final Coordinate startCoordinate;
     final int stamina;
     List<Coordinate> lodgeCoordinates;
     int curDestIdx;
     SearchMethod searchMethod = null;
-    private static int VERTICAL_OR_HORIZONTAL_MOVE_COST = 10;
-    private static int DIANGOL_MOVE_COST = 14;
+    private static long VERTICAL_OR_HORIZONTAL_MOVE_COST = 10L;
+    private static long DIANGOL_MOVE_COST = 14L;
 
     public final Heuristic DiagnaolWalking = state -> {
         assert state instanceof SkiState;
@@ -29,7 +29,7 @@ public class SkiProblem implements Problem<SkiState, SkiAction> {
         return Math.min(horizontalDist, verticalDist) * DIANGOL_MOVE_COST + Math.abs(horizontalDist - verticalDist) * VERTICAL_OR_HORIZONTAL_MOVE_COST;
     };
 
-    public SkiProblem(final int mapWidth, final int mapHeight, List<List<Integer>> map, final Coordinate startCoordinate, final int stamina, final List<Coordinate> lodgeCoordinates) {
+    public SkiProblem(final int mapWidth, final int mapHeight, final List<List<Long>> map, final Coordinate startCoordinate, final int stamina, final List<Coordinate> lodgeCoordinates) {
         this.mapWidth = mapWidth;
         this.mapHeight = mapHeight;
         this.map = map;
@@ -44,7 +44,7 @@ public class SkiProblem implements Problem<SkiState, SkiAction> {
         return new SkiState(startCoordinate, startCoordinate, (searchMethod == SearchMethod.A_STAR_SEARCH));
     }
 
-    private static int calculateHorizontalMoveCost(SkiAction action) {
+    private static long calculateHorizontalMoveCost(SkiAction action) {
         if (SkiAction.verticalOrHorizontalMove.contains(action.direction)) {
             return VERTICAL_OR_HORIZONTAL_MOVE_COST;
         } else if (SkiAction.DiagonalMove.contains(action.direction)) {
@@ -54,31 +54,31 @@ public class SkiProblem implements Problem<SkiState, SkiAction> {
         }
     }
 
-    private int calculateElevationChangeCost(SkiState state, SkiAction action) {
+    private Long calculateElevationChangeCost(SkiState state, SkiAction action) {
         final Coordinate prevCoord = state.prevCoordinate;
         final Coordinate curCoord = state.curCoordinate;
         final Coordinate nextCoord = action.performAction(state.curCoordinate);
 
-        final int E_prev = Math.abs(map.get(prevCoord.y).get(prevCoord.x));
-        final int E_curr = Math.abs(map.get(curCoord.y).get(curCoord.x));
-        final int E_next = map.get(nextCoord.y).get(nextCoord.x);
-        final int momentum = ((E_next - E_curr) > 0) ? Math.max(0, E_prev - E_curr) : 0;
+        final long E_prev = Math.abs(map.get(prevCoord.y).get(prevCoord.x));
+        final long E_curr = Math.abs(map.get(curCoord.y).get(curCoord.x));
+        final long E_next = map.get(nextCoord.y).get(nextCoord.x);
+        final long momentum = ((E_next - E_curr) > 0) ? Math.max(0, E_prev - E_curr) : 0;
 
         return ((E_next - E_curr) <= momentum) ? 0 : Math.max(0, E_next - E_curr - momentum);
     }
 
-    private int calculateCostAStar(SkiState state, SkiAction action) {
-        int horizontalMoveDistance = calculateHorizontalMoveCost(action);
-        int elevationChangeCost = calculateElevationChangeCost(state, action);
+    private long calculateCostAStar(SkiState state, SkiAction action) {
+        long horizontalMoveDistance = calculateHorizontalMoveCost(action);
+        long elevationChangeCost = calculateElevationChangeCost(state, action);
 
         return horizontalMoveDistance + elevationChangeCost;
     }
 
     @Override
-    public int calculateCost(SkiState state, SkiAction action) {
+    public long calculateCost(SkiState state, SkiAction action) {
         switch (searchMethod) {
             case BFS: {
-                return 1;       // every move cost exactly one
+                return 1L;       // every move cost exactly one
             }
 
             case UNIFORM_COST_SEARCH: {
@@ -105,8 +105,8 @@ public class SkiProblem implements Problem<SkiState, SkiAction> {
     }
 
     private boolean isMoveValid_BFS_UCS(final Coordinate oldCoord, final Coordinate newCoord) {
-        final int startElevation = Math.abs(map.get(oldCoord.y).get(oldCoord.x));
-        final int endElevation = map.get(newCoord.y).get(newCoord.x);
+        final long startElevation = Math.abs(map.get(oldCoord.y).get(oldCoord.x));
+        final long endElevation = map.get(newCoord.y).get(newCoord.x);
 
         if (endElevation < 0 && startElevation < Math.abs(endElevation)) {
             // meet a tree that is not crossable
@@ -120,15 +120,15 @@ public class SkiProblem implements Problem<SkiState, SkiAction> {
     }
 
     private boolean isMoveValid_A_STAR(final Coordinate prevCoord, final Coordinate curCoord, final Coordinate nextCoord) {
-        final int E_prev = Math.abs(map.get(prevCoord.y).get(prevCoord.x));
-        final int E_curr = Math.abs(map.get(curCoord.y).get(curCoord.x));
-        final int E_next = map.get(nextCoord.y).get(nextCoord.x);
+        final long E_prev = Math.abs(map.get(prevCoord.y).get(prevCoord.x));
+        final long E_curr = Math.abs(map.get(curCoord.y).get(curCoord.x));
+        final long E_next = map.get(nextCoord.y).get(nextCoord.x);
 
         if (E_next < 0) {
             return E_curr >= Math.abs(E_next);
         }
 
-        final int momentum = ((E_next - E_curr) > 0) ? Math.max(0, E_prev - E_curr) : 0;
+        final long momentum = ((E_next - E_curr) > 0) ? Math.max(0, E_prev - E_curr) : 0;
 
         return E_curr + momentum + stamina >= E_next;
     }

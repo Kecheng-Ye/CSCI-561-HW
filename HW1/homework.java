@@ -6,7 +6,7 @@ import java.util.List;
 
 public class homework {
     public static void main(String[] args) {
-        final String INPUT_FILE_PATH = "A*_TEST_FILE.txt";
+        final String INPUT_FILE_PATH = "input.txt";
         final String OUTPUT_FILE_PATH = "output.txt";
         SkiProblemParser.SkiProblemParserResult parserResult = SkiProblemParser.parseFromText(INPUT_FILE_PATH);
         if (parserResult == null) {
