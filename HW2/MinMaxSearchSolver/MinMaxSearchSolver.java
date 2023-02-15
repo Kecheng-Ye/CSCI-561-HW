@@ -29,7 +29,7 @@ public class MinMaxSearchSolver<S extends State, A extends Action, P extends Pla
         float minUtility = 2f;
 
         for (final A action : game.validActions(state)) {
-            minUtility = Math.max(minUtility, MaxValue(game, game.result(state, action)));
+            minUtility = Math.min(minUtility, MaxValue(game, game.result(state, action)));
         }
 
         return minUtility;

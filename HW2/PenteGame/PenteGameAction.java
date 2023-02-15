@@ -9,7 +9,7 @@ public class PenteGameAction extends Action {
     final PenteGameCoordinate coordinate;
     final PenteGamePiece pieceColor;
 
-    public PenteGameAction(final PenteGameCoordinate coordinate, final PenteGamePiece pieceColor) {
+    private PenteGameAction(final PenteGameCoordinate coordinate, final PenteGamePiece pieceColor) {
         this.coordinate = coordinate;
         this.pieceColor = pieceColor;
     }
@@ -40,4 +40,7 @@ public class PenteGameAction extends Action {
         return (pieceColor == PenteGamePiece.WHITE) ? ALL_WHITE_MOVES : ALL_BLACK_MOVES;
     }
 
+    public static PenteGameAction generateFromStr(PenteGamePlayer player, String actionStr) {
+        return new PenteGameAction(PenteGameCoordinate.parseFromStr(actionStr), player.playerType);
+    }
 }

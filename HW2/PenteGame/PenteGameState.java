@@ -143,17 +143,17 @@ public class PenteGameState extends State {
     public final int round;
     public int whiteCaptures;
     public int blackCaptures;
+    public int numOfEmptySpots;
 
-    private PenteGameState(final PenteGamePiece[][] board, final int round, final int whiteCaptures, final int blackCaptures) {
+    private PenteGameState(final PenteGamePiece[][] board, final int round, final int whiteCaptures, final int blackCaptures, final int numOfEmptySpots) {
         this.board = new PenteGamePiece[PenteGame.BOARD_HEIGHT][PenteGame.BOARD_WIDTH];
         for (int i = 0; i < PenteGame.BOARD_HEIGHT; i++) {
-            for (int j = 0; j < PenteGame.BOARD_WIDTH; j++) {
-                this.board[i][j] = board[i][j];
-            }
+            System.arraycopy(board[i], 0, this.board[i], 0, PenteGame.BOARD_WIDTH);
         }
         this.round = round;
         this.whiteCaptures = whiteCaptures;
         this.blackCaptures = blackCaptures;
+        this.numOfEmptySpots = numOfEmptySpots;
     }
 
     public static PenteGameState fromPrevState(final PenteGameState prevState) {
@@ -161,7 +161,8 @@ public class PenteGameState extends State {
                 prevState.board,
                 prevState.round + 1,
                 prevState.whiteCaptures,
-                prevState.blackCaptures
+                prevState.blackCaptures,
+                prevState.numOfEmptySpots
         );
     }
 
@@ -170,12 +171,20 @@ public class PenteGameState extends State {
         this.board = new PenteGamePiece[PenteGame.BOARD_HEIGHT][PenteGame.BOARD_WIDTH];
         this.whiteCaptures = 0;
         this.blackCaptures = 0;
+        this.numOfEmptySpots = PenteGame.BOARD_HEIGHT * PenteGame.BOARD_WIDTH;
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
+        builder.append("    ");
+        for (int j = 0; j < PenteGame.BOARD_WIDTH; j++) {
+            builder.append(String.format("%c ", (char)('A' + j)));
+        }
+        builder.append("\n");
+
         for (int i = 0; i < PenteGame.BOARD_HEIGHT; i++) {
+            builder.append(String.format("%3d ", (PenteGame.BOARD_HEIGHT - i)));
             for (int j = 0; j < PenteGame.BOARD_WIDTH; j++) {
                 if (board[i][j] == null) {
                     builder.append('.');

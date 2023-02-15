@@ -2,12 +2,16 @@ package PenteGame;
 
 import Game.BiPlayerGame;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PenteGame extends BiPlayerGame<PenteGameState, PenteGameAction, PenteGamePlayer> {
-    public static final int BOARD_WIDTH = 19;
-    public static final int BOARD_HEIGHT = 19;
+public class PenteGame extends BiPlayerGame<PenteGameState, PenteGameAction, PenteGamePlayer> implements Iterable<PenteGameCoordinate> {
+    public static final int BOARD_WIDTH = 7;
+    public static final int BOARD_HEIGHT = 7;
+    public static final int MAX_NUM_PIECES_IN_A_ROW = 4;
+    public static final int CAPTURE_RANGE = 4;
+    public static final int NUM_OF_CAPTURES_TO_FINISH = 5;
 
     public PenteGame(PenteGamePlayer self) {
         super(self, PenteGamePlayer.getOpponent(self));
@@ -44,24 +48,33 @@ public class PenteGame extends BiPlayerGame<PenteGameState, PenteGameAction, Pen
 
     @Override
     public boolean terminalTest(final PenteGameState state) {
-        return PenteGameBoardUtil.checkGameIsFinished(state.board).isFinished ||
-                (state.whiteCaptures >= 5) ||
-                (state.blackCaptures >= 5);
+        return (state.whiteCaptures >= NUM_OF_CAPTURES_TO_FINISH)   ||
+               (state.blackCaptures >= NUM_OF_CAPTURES_TO_FINISH)   ||
+               (state.numOfEmptySpots == 0) ||
+               PenteGameBoardUtil.checkBoardHasConsecutivePieces(state.board).isFinished;
     }
 
     @Override
     public float utility(final PenteGameState state) {
         PenteGamePiece winner = null;
-        if (state.whiteCaptures >= 5) {
+        if (state.whiteCaptures >= NUM_OF_CAPTURES_TO_FINISH) {
             winner = PenteGamePiece.WHITE;
-        } else if (state.blackCaptures >= 5) {
+        } else if (state.blackCaptures >= NUM_OF_CAPTURES_TO_FINISH) {
             winner = PenteGamePiece.BLACK;
-        } else {
-            PenteGameBoardUtil.PenteGameTerminationStatus status = PenteGameBoardUtil.checkGameIsFinished(state.board);
+        } else if (state.numOfEmptySpots == 0) {
+            return 0f;
+        }else {
+            PenteGameBoardUtil.PenteGameTerminationStatus status = PenteGameBoardUtil.checkBoardHasConsecutivePieces(state.board);
             assert status.isFinished;
             winner = status.winner;
         }
 
         return (winner == this.MAX_PLAYER.playerType) ? 1 : -1;
+    }
+
+
+    @Override
+    public Iterator<PenteGameCoordinate> iterator() {
+        return new PenteGameCoordinateIterator();
     }
 }

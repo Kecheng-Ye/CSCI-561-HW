@@ -1,74 +1,53 @@
+import MinMaxSearchSolver.MinMaxSearchSolver;
 import PenteGame.*;
 
 import java.util.List;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import MinMaxSearchSolver.*;
 
 public class homework {
     public static void main(String[] args) {
-        PenteGame game = new PenteGame(PenteGamePlayer.BLACK_PLAYER);
-        PenteGameState initState = game.initialState();
-        PenteGameAction action = new PenteGameAction(new PenteGameCoordinate(7, 10), PenteGamePiece.WHITE);
-        initState = game.result(initState, action);
+        final PenteGamePlayer AI = PenteGamePlayer.BLACK_PLAYER;
+        final PenteGamePlayer SELF = PenteGamePlayer.getOpponent(AI);
+        PenteGame game = new PenteGame(AI);
+        PenteGameState temp = game.initialState();
+        PenteGameHeurstics heurstics = new PenteGameHeurstics();
+//        final MinMaxSearchSolver<PenteGameState, PenteGameAction, PenteGamePlayer, PenteGame> solver =
+//                new MinMaxSearchSolver<PenteGameState, PenteGameAction, PenteGamePlayer, PenteGame>();
 
-        action = new PenteGameAction(new PenteGameCoordinate(9, 10), PenteGamePiece.BLACK);
-        initState = game.result(initState, action);
+//        final MinMaxSearchSolver<PenteGameState, PenteGameAction, PenteGamePlayer, PenteGame> solver =
+//                new AlphaBetaMinMaxSolver<PenteGameState, PenteGameAction, PenteGamePlayer, PenteGame>();
 
-        action = new PenteGameAction(new PenteGameCoordinate(8, 10), PenteGamePiece.BLACK);
-        initState = game.result(initState, action);
+        final MinMaxSearchSolver<PenteGameState, PenteGameAction, PenteGamePlayer, PenteGame> solver =
+                new AlphaBetaWithHeursticsMinMax<PenteGameState, PenteGameAction, PenteGamePlayer, PenteGame>(heurstics, 3);
+        Scanner scanner = new Scanner(System.in);
 
-        action = new PenteGameAction(new PenteGameCoordinate(7, 10), PenteGamePiece.WHITE);
-        initState = game.result(initState, action);
+        while (!game.terminalTest(temp)) {
+            System.out.println(temp);
+//            System.out.printf("Heurstics: %f\n", heurstics.eval(game, temp));
+            final PenteGamePlayer currentPlayer = game.playerForNextMove(temp);
+            PenteGameAction action = null;
+            if (currentPlayer == AI) {
+                action = solver.MinMaxDecision(game, temp);
+            } else {
+                System.out.print("Enter a Action: ");
+                action = PenteGameAction.generateFromStr(SELF, scanner.nextLine());
+            }
 
-        action = new PenteGameAction(new PenteGameCoordinate(11, 10), PenteGamePiece.BLACK);
-        initState = game.result(initState, action);
+            temp = game.result(temp, action);
+        }
 
-        action = new PenteGameAction(new PenteGameCoordinate(12, 10), PenteGamePiece.BLACK);
-        initState = game.result(initState, action);
+        System.out.println(temp);
+        System.out.println(game.utility(temp));
 
-        action = new PenteGameAction(new PenteGameCoordinate(13, 10), PenteGamePiece.WHITE);
-        initState = game.result(initState, action);
-
-        action = new PenteGameAction(new PenteGameCoordinate(10, 9), PenteGamePiece.BLACK);
-        initState = game.result(initState, action);
-
-        action = new PenteGameAction(new PenteGameCoordinate(10, 8), PenteGamePiece.BLACK);
-        initState = game.result(initState, action);
-
-        action = new PenteGameAction(new PenteGameCoordinate(10, 7), PenteGamePiece.WHITE);
-        initState = game.result(initState, action);
-
-        action = new PenteGameAction(new PenteGameCoordinate(10, 11), PenteGamePiece.BLACK);
-        initState = game.result(initState, action);
-
-        action = new PenteGameAction(new PenteGameCoordinate(10, 12), PenteGamePiece.BLACK);
-        initState = game.result(initState, action);
-
-        action = new PenteGameAction(new PenteGameCoordinate(10, 13), PenteGamePiece.WHITE);
-        initState = game.result(initState, action);
-
-        action = new PenteGameAction(new PenteGameCoordinate(9, 9), PenteGamePiece.BLACK);
-        initState = game.result(initState, action);
-
-        action = new PenteGameAction(new PenteGameCoordinate(8, 8), PenteGamePiece.BLACK);
-        initState = game.result(initState, action);
-
-        action = new PenteGameAction(new PenteGameCoordinate(7, 7), PenteGamePiece.WHITE);
-        initState = game.result(initState, action);
-
-        action = new PenteGameAction(new PenteGameCoordinate(11, 11), PenteGamePiece.BLACK);
-        initState = game.result(initState, action);
-
-        action = new PenteGameAction(new PenteGameCoordinate(12, 12), PenteGamePiece.BLACK);
-        initState = game.result(initState, action);
-
-        action = new PenteGameAction(new PenteGameCoordinate(13, 13), PenteGamePiece.WHITE);
-        initState = game.result(initState, action);
-
-        System.out.println(initState);
-
-        action = new PenteGameAction(new PenteGameCoordinate(10, 10), PenteGamePiece.BLACK);
-        initState = game.result(initState, action);
-
-        System.out.println(initState);
-        System.out.println(game.utility(initState));
+//        for (final PenteGameCoordinate coordinate : game) {
+//            System.out.println(coordinate);
+//        }
+//
+//        for (final PenteGameCoordinate coordinate : game) {
+//            System.out.println(coordinate);
+//        }
     }
 }

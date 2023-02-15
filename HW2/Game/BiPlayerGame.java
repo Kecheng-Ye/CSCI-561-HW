@@ -3,8 +3,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class BiPlayerGame<S extends State, A extends Action, P extends Player> {
-    protected final P MAX_PLAYER;
-    final P MIN_PLAYER;
+    public final P MAX_PLAYER;
+    public final P MIN_PLAYER;
 
     public BiPlayerGame(final P MAX_PLAYER, final P MIN_PLAYER) {
         this.MAX_PLAYER = MAX_PLAYER;

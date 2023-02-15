@@ -23,14 +23,14 @@ public class PenteGameBoardUtil {
         }
     }
 
-    private static final int NUM_OF_DIRECTIONS = 4;
-
-    private static final int[][] directions = {
+    public static final int[][] directions = {
             {0, 1},         // horizontal: left to right
             {1, 0},         // vertical: top to bottom
             {1, 1},         // diagonal: top left to bottom right
             {1, -1}         // diagonal: top right to bottom left
     };
+
+    private static final int NUM_OF_DIRECTIONS = directions.length;
 
     private static final List<PenteGameCoordinate> horizontalStartPoint = new ArrayList<>() {{
         for (int i = 0; i < PenteGame.BOARD_HEIGHT; i++) {
@@ -46,13 +46,19 @@ public class PenteGameBoardUtil {
 
     private static final List<PenteGameCoordinate> leftDiagonalStartPoint = new ArrayList<>() {{
         for (int i = 0; i < (PenteGame.BOARD_HEIGHT + PenteGame.BOARD_WIDTH - 1); i++) {
-            add(PenteGameCoordinate.getCoordinate(Math.max(0, 18 - i), Math.max(0, i - 18)));
+            add(PenteGameCoordinate.getCoordinate(
+                    Math.max(0, PenteGame.BOARD_HEIGHT - 1 - i),
+                    Math.max(0, i - PenteGame.BOARD_WIDTH - 1))
+            );
         }
     }};
 
     private static final List<PenteGameCoordinate> rightDiagonalStartPoint = new ArrayList<>() {{
         for (int i = 0; i < (PenteGame.BOARD_HEIGHT + PenteGame.BOARD_WIDTH - 1); i++) {
-            add(PenteGameCoordinate.getCoordinate(Math.max(0, i - 18), Math.min(18, i)));
+            add(PenteGameCoordinate.getCoordinate(
+                    Math.max(0, i - PenteGame.BOARD_HEIGHT - 1),
+                    Math.min(PenteGame.BOARD_WIDTH - 1, i))
+            );
         }
     }};
 
@@ -63,9 +69,7 @@ public class PenteGameBoardUtil {
             rightDiagonalStartPoint
     );
 
-    static final int MAX_NUM_PIECES_IN_A_ROW = 5;
-
-    private static PenteGameTerminationStatus checkIsFinishedOneDimension(
+    private static PenteGameTerminationStatus checkBoardHasConsecutivePiecesOneDimension(
             final PenteGamePiece[][] board,
             final PenteGameCoordinate startCoordinate,
             final int[] moveDirection
@@ -82,7 +86,7 @@ public class PenteGameBoardUtil {
             } else {
                 if (currPiece == board[currY][currX]) {
                     samePieceCount++;
-                    if (samePieceCount >= MAX_NUM_PIECES_IN_A_ROW) {
+                    if (samePieceCount >= PenteGame.MAX_NUM_PIECES_IN_A_ROW) {
                         return PenteGameTerminationStatus.success(currPiece);
                     }
                 } else {
@@ -101,7 +105,7 @@ public class PenteGameBoardUtil {
     private static PenteGamePiece[][] prevCheckBoard = null;
     private static PenteGameTerminationStatus prevCheckResult = null;
 
-    public static PenteGameTerminationStatus checkGameIsFinished(final PenteGamePiece[][] board) {
+    public static PenteGameTerminationStatus checkBoardHasConsecutivePieces(final PenteGamePiece[][] board) {
         // We often call Utility after isTerminal
         // this mechanism can prevent redundant checking
         if (Arrays.deepEquals(board, prevCheckBoard)) {
@@ -115,7 +119,12 @@ public class PenteGameBoardUtil {
             final List<PenteGameCoordinate> directionStartPoints = startPoints.get(i);
 
             for (final PenteGameCoordinate startPoint : directionStartPoints) {
-                final PenteGameTerminationStatus status = checkIsFinishedOneDimension(board, startPoint, directionMove);
+                final PenteGameTerminationStatus status = checkBoardHasConsecutivePiecesOneDimension(
+                        board,
+                        startPoint,
+                        directionMove
+                );
+
                 if (status.isFinished) {
                     prevCheckResult = status;
                     return status;
@@ -133,6 +142,7 @@ public class PenteGameBoardUtil {
         // place the piece
         final PenteGameCoordinate coordinate = action.coordinate;
         newState.board[coordinate.y][coordinate.x] = action.pieceColor;
+        newState.numOfEmptySpots -= 1;
 
         // make potential capture
         tryToCapture(newState, coordinate);
@@ -146,12 +156,10 @@ public class PenteGameBoardUtil {
             tryToCaptureOneDirection(newState, pieceCoordinate, new int[] {-1 * direction[0], -1 * direction[1]});
         }
     }
-
-    private static final int CAPTURE_RANGE = 4;
-    private static final PenteGamePiece[] captureCandidate = new PenteGamePiece[CAPTURE_RANGE];
+    private static final PenteGamePiece[] captureCandidate = new PenteGamePiece[PenteGame.CAPTURE_RANGE];
 
     private static void tryToCaptureOneDirection(final PenteGameState newState, final PenteGameCoordinate pieceCoordinate, final int[] direction) {
-        for (int i = 0; i < CAPTURE_RANGE; i++) {
+        for (int i = 0; i < PenteGame.CAPTURE_RANGE; i++) {
             int currY = pieceCoordinate.y + i * direction[0];
             int currX = pieceCoordinate.x + i * direction[1];
 

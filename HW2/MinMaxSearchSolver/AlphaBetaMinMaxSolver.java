@@ -9,8 +9,8 @@ public class AlphaBetaMinMaxSolver<S extends State, A extends Action, P extends 
 
     public A MinMaxDecision(final Game game, final S state) {
         float maxUtility = -2f;
-        float alpha = 2f;
-        float beta = -2f;
+        float alpha = -2f;
+        float beta = 2f;
 
         A result = null;
 
@@ -32,7 +32,7 @@ public class AlphaBetaMinMaxSolver<S extends State, A extends Action, P extends 
         float minUtility = 2f;
 
         for (final A action : game.validActions(state)) {
-            minUtility = Math.max(minUtility, MaxValue(game, game.result(state, action), alpha, beta));
+            minUtility = Math.min(minUtility, MaxValue(game, game.result(state, action), alpha, beta));
             if (minUtility < alpha) {
                 return minUtility;
             }
