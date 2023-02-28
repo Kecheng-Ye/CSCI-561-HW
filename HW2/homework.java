@@ -1,53 +1,90 @@
-import MinMaxSearchSolver.MinMaxSearchSolver;
-import PenteGame.*;
-
-import java.util.List;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import MinMaxSearchSolver.*;
+import PenteGame.*;
+import Utils.Partition;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
+import java.util.stream.IntStream;
 
 public class homework {
     public static void main(String[] args) {
-        final PenteGamePlayer AI = PenteGamePlayer.BLACK_PLAYER;
+        final PenteGamePlayer AI = PenteGamePlayer.WHITE_PLAYER;
         final PenteGamePlayer SELF = PenteGamePlayer.getOpponent(AI);
         PenteGame game = new PenteGame(AI);
         PenteGameState temp = game.initialState();
         PenteGameHeurstics heurstics = new PenteGameHeurstics();
-//        final MinMaxSearchSolver<PenteGameState, PenteGameAction, PenteGamePlayer, PenteGame> solver =
-//                new MinMaxSearchSolver<PenteGameState, PenteGameAction, PenteGamePlayer, PenteGame>();
 
-//        final MinMaxSearchSolver<PenteGameState, PenteGameAction, PenteGamePlayer, PenteGame> solver =
-//                new AlphaBetaMinMaxSolver<PenteGameState, PenteGameAction, PenteGamePlayer, PenteGame>();
-
-        final MinMaxSearchSolver<PenteGameState, PenteGameAction, PenteGamePlayer, PenteGame> solver =
-                new AlphaBetaWithHeursticsMinMax<PenteGameState, PenteGameAction, PenteGamePlayer, PenteGame>(heurstics, 3);
+        final MinMaxSearchSolver<PenteGameState, PenteGameAction, PenteGamePlayer> solver =
+                new AlphaBetaWithHeursticsMinMax<PenteGameState, PenteGameAction, PenteGamePlayer>(heurstics, 5);
         Scanner scanner = new Scanner(System.in);
 
-        while (!game.terminalTest(temp)) {
-            System.out.println(temp);
-//            System.out.printf("Heurstics: %f\n", heurstics.eval(game, temp));
-            final PenteGamePlayer currentPlayer = game.playerForNextMove(temp);
-            PenteGameAction action = null;
-            if (currentPlayer == AI) {
-                action = solver.MinMaxDecision(game, temp);
-            } else {
-                System.out.print("Enter a Action: ");
-                action = PenteGameAction.generateFromStr(SELF, scanner.nextLine());
-            }
+        long start = System.currentTimeMillis();
+        System.out.println(solver.MinMaxDecisionMultiThread(game, temp, 5));
+        long finish = System.currentTimeMillis();
+        long timeElapsed = finish - start;
+        System.out.printf("Used time: timeElapsed %d", timeElapsed);
 
-            temp = game.result(temp, action);
-        }
 
-        System.out.println(temp);
-        System.out.println(game.utility(temp));
+//        start = System.currentTimeMillis();
+//        System.out.println(solver.MinMaxDecision(game, temp));
+//        finish = System.currentTimeMillis();
+//        timeElapsed = finish - start;
+//        System.out.printf("Used time: timeElapsed %d", timeElapsed);
 
-//        for (final PenteGameCoordinate coordinate : game) {
+//        for (PenteGameCoordinateIterator it = new PenteGameCoordinateIterator(); it.hasNext(); ) {
+//            PenteGameCoordinate coordinate = it.next();
 //            System.out.println(coordinate);
+//        }
+
+//        PenteGameBoard board1 = new PenteGameBoard();
+//        PenteGamePiece[][] board2 = new PenteGamePiece[PenteGame.BOARD_HEIGHT][PenteGame.BOARD_WIDTH];
+//
+
+//        Random random = new Random();
+//        PenteGameBoard[] boards = new PenteGameBoard[100000];
+//
+//        IntStream.range(0, 100000).forEach((idx) -> {
+//            PenteGameBoard board = new PenteGameBoard();
+//            for (int i = 0; i < 100; i++) {
+//                int random1 = random.nextInt(PenteGame.BOARD_HEIGHT);
+//                int random2 = random.nextInt(PenteGame.BOARD_WIDTH);
+//                PenteGamePiece piece = ((random.nextInt(2) % 2) == 0) ? PenteGamePiece.WHITE : PenteGamePiece.BLACK;
+//                piece = ((random.nextInt(2) % 2) == 0) ? piece : null;
+//                board.put(random1, random2, piece);
+//            }
+//            boards[idx] = board;
+//        });
+//
+//        PenteGamePiece[][][] boards2 = new PenteGamePiece[100000][PenteGame.BOARD_HEIGHT][PenteGame.BOARD_WIDTH];
+//        int count = 0;
+//        for (final PenteGameBoard board : boards) {
+//            boards2[count++] = board.toArrRepr();
 //        }
 //
-//        for (final PenteGameCoordinate coordinate : game) {
-//            System.out.println(coordinate);
+//        long start = System.currentTimeMillis();
+//        int cnt = 0;
+//        for (final PenteGameBoard board : boards) {
+//            int a = board.hashCode();
+//            boolean b = board.equals(boards[0]);
+//
+//            cnt += (a + ((b) ? 1 : 0));
 //        }
+//        long finish = System.currentTimeMillis();
+//        long timeElapsed = finish - start;
+//        System.out.printf("Used time: timeElapsed %d %d", timeElapsed, cnt);
+//
+//        start = System.currentTimeMillis();
+//        cnt = 0;
+//        for (final PenteGamePiece[][] board : boards2) {
+//            int a = Arrays.deepHashCode(board);
+//            boolean b = Arrays.deepEquals(board, boards2[0]);
+//
+//            cnt += (a + ((b) ? 1 : 0));
+//        }
+//        finish = System.currentTimeMillis();
+//        timeElapsed = finish - start;
+//        System.out.printf("Used time: timeElapsed %d %d", timeElapsed, cnt);
     }
 }

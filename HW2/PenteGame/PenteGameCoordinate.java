@@ -14,6 +14,11 @@ public class PenteGameCoordinate {
         this.y = y;
     }
 
+    public PenteGameCoordinate(final PenteGameCoordinate coordinate) {
+        this.x = coordinate.x;
+        this.y = coordinate.y;
+    }
+
     @Override
     public String toString() {
         return String.format("%d%c", (PenteGame.BOARD_HEIGHT - y), (char)('A' + x));

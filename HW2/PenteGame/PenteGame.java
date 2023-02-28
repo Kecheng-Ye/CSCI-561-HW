@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class PenteGame extends BiPlayerGame<PenteGameState, PenteGameAction, PenteGamePlayer> implements Iterable<PenteGameCoordinate> {
-    public static final int BOARD_WIDTH = 7;
-    public static final int BOARD_HEIGHT = 7;
-    public static final int MAX_NUM_PIECES_IN_A_ROW = 4;
+    public static final int BOARD_WIDTH = 5;
+    public static final int BOARD_HEIGHT = 5;
+    public static final int MAX_NUM_PIECES_IN_A_ROW = 3;
     public static final int CAPTURE_RANGE = 4;
     public static final int NUM_OF_CAPTURES_TO_FINISH = 5;
 
@@ -32,11 +32,33 @@ public class PenteGame extends BiPlayerGame<PenteGameState, PenteGameAction, Pen
         PenteGamePlayer nextPlayer = playerForNextMove(state);
         List<PenteGameAction> allActions = PenteGameAction.getAllAction(nextPlayer.playerType);
 
+        if (state.round == 2) {
+            PenteGameCoordinate firstWhitePieceCoordinate = null;
+            for (final PenteGameCoordinate coordinate : this) {
+                if (state.board.get(coordinate) == PenteGamePiece.WHITE) {
+                    firstWhitePieceCoordinate = coordinate;
+                    break;
+                }
+            }
+
+            final PenteGameCoordinate finalFirstWhitePieceCoordinate = firstWhitePieceCoordinate;
+            return allActions
+                    .stream()
+                    .filter(penteGameAction -> {
+                        final PenteGameCoordinate coordinate = penteGameAction.coordinate;
+
+                        return state.board.get(coordinate) == null &&
+                                Math.abs(finalFirstWhitePieceCoordinate.y - coordinate.y) >= 3 &&
+                                Math.abs(finalFirstWhitePieceCoordinate.x - coordinate.x) >= 3;
+                    })
+                    .collect(Collectors.toList());
+        }
+
         return allActions
                 .stream()
                 .filter(penteGameAction -> {
                         final PenteGameCoordinate coordinate = penteGameAction.coordinate;
-                        return state.board[coordinate.y][coordinate.x] == null;
+                        return state.board.get(coordinate) == null;
                 })
                 .collect(Collectors.toList());
     }
@@ -46,32 +68,19 @@ public class PenteGame extends BiPlayerGame<PenteGameState, PenteGameAction, Pen
         return PenteGameBoardUtil.placePieceOnBoard(state, action);
     }
 
-    @Override
-    public boolean terminalTest(final PenteGameState state) {
-        return (state.whiteCaptures >= NUM_OF_CAPTURES_TO_FINISH)   ||
-               (state.blackCaptures >= NUM_OF_CAPTURES_TO_FINISH)   ||
-               (state.numOfEmptySpots == 0) ||
-               PenteGameBoardUtil.checkBoardHasConsecutivePieces(state.board).isFinished;
-    }
 
     @Override
-    public float utility(final PenteGameState state) {
-        PenteGamePiece winner = null;
+    public PenteGameTerminationStatus terminalTest(final PenteGameState state) {
         if (state.whiteCaptures >= NUM_OF_CAPTURES_TO_FINISH) {
-            winner = PenteGamePiece.WHITE;
+            return PenteGameTerminationStatus.success(PenteGamePlayer.WHITE_PLAYER);
         } else if (state.blackCaptures >= NUM_OF_CAPTURES_TO_FINISH) {
-            winner = PenteGamePiece.BLACK;
+            return PenteGameTerminationStatus.success(PenteGamePlayer.BLACK_PLAYER);
         } else if (state.numOfEmptySpots == 0) {
-            return 0f;
-        }else {
-            PenteGameBoardUtil.PenteGameTerminationStatus status = PenteGameBoardUtil.checkBoardHasConsecutivePieces(state.board);
-            assert status.isFinished;
-            winner = status.winner;
+            return PenteGameTerminationStatus.draw();
+        } else {
+            return PenteGameBoardUtil.checkBoardHasConsecutivePieces(state.board);
         }
-
-        return (winner == this.MAX_PLAYER.playerType) ? 1 : -1;
     }
-
 
     @Override
     public Iterator<PenteGameCoordinate> iterator() {

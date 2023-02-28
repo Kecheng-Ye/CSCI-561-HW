@@ -1,5 +1,5 @@
 package Game;
-import java.util.ArrayList;
+
 import java.util.List;
 
 public abstract class BiPlayerGame<S extends State, A extends Action, P extends Player> {
@@ -23,9 +23,9 @@ public abstract class BiPlayerGame<S extends State, A extends Action, P extends 
     // The transition model, which defines the result of a move
     public abstract S result(S state, A action);
 
-    // A terminal test, which is true when the game is over and false otherwise
-    public abstract boolean terminalTest(S state);
+    // A terminal test
+    public abstract BiPlayerGameTerminationStatus<S, A, P> terminalTest(S state);
 
     // A utility function (also called an objective function or payoff function) defines the final numeric value
-    public abstract float utility(S state);
+//    public abstract float utility(S state);
 }

@@ -5,24 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class PenteGameBoardUtil {
-    public static class PenteGameTerminationStatus {
-        public final boolean isFinished;
-        public final PenteGamePiece winner;
-
-        private PenteGameTerminationStatus(final boolean isFinished, final PenteGamePiece winner) {
-            this.isFinished = isFinished;
-            this.winner = winner;
-        }
-
-        public static PenteGameTerminationStatus success(final PenteGamePiece winner) {
-            return new PenteGameTerminationStatus(true, winner);
-        }
-
-        public static PenteGameTerminationStatus fail() {
-            return new PenteGameTerminationStatus(false, null);
-        }
-    }
-
     public static final int[][] directions = {
             {0, 1},         // horizontal: left to right
             {1, 0},         // vertical: top to bottom
@@ -70,7 +52,7 @@ public class PenteGameBoardUtil {
     );
 
     private static PenteGameTerminationStatus checkBoardHasConsecutivePiecesOneDimension(
-            final PenteGamePiece[][] board,
+            final PenteGameBoard board,
             final PenteGameCoordinate startCoordinate,
             final int[] moveDirection
     ) {
@@ -80,18 +62,19 @@ public class PenteGameBoardUtil {
         int currY = startCoordinate.y;
 
         while (PenteGameCoordinate.isCoordinateValid(currY, currX)) {
-            if (board[currY][currX] == null) {
+            if (board.get(currY, currX) == null) {
                 samePieceCount = 0;
                 currPiece = null;
             } else {
-                if (currPiece == board[currY][currX]) {
+                if (currPiece == board.get(currY, currX)) {
                     samePieceCount++;
                     if (samePieceCount >= PenteGame.MAX_NUM_PIECES_IN_A_ROW) {
-                        return PenteGameTerminationStatus.success(currPiece);
+                        final PenteGamePlayer winner = (currPiece == PenteGamePiece.WHITE) ? PenteGamePlayer.WHITE_PLAYER : PenteGamePlayer.BLACK_PLAYER;
+                        return PenteGameTerminationStatus.success(winner);
                     }
                 } else {
                     samePieceCount = 1;
-                    currPiece = board[currY][currX];
+                    currPiece = board.get(currY, currX);
                 }
             }
 
@@ -102,18 +85,7 @@ public class PenteGameBoardUtil {
         return PenteGameTerminationStatus.fail();
     }
 
-    private static PenteGamePiece[][] prevCheckBoard = null;
-    private static PenteGameTerminationStatus prevCheckResult = null;
-
-    public static PenteGameTerminationStatus checkBoardHasConsecutivePieces(final PenteGamePiece[][] board) {
-        // We often call Utility after isTerminal
-        // this mechanism can prevent redundant checking
-        if (Arrays.deepEquals(board, prevCheckBoard)) {
-            assert prevCheckResult != null;
-            return prevCheckResult;
-        }
-
-        prevCheckBoard = board;
+    public static PenteGameTerminationStatus checkBoardHasConsecutivePieces(final PenteGameBoard board) {
         for (int i = 0; i < NUM_OF_DIRECTIONS; i++) {
             final int[] directionMove = directions[i];
             final List<PenteGameCoordinate> directionStartPoints = startPoints.get(i);
@@ -126,14 +98,12 @@ public class PenteGameBoardUtil {
                 );
 
                 if (status.isFinished) {
-                    prevCheckResult = status;
                     return status;
                 }
             }
         }
 
-        prevCheckResult = PenteGameTerminationStatus.fail();
-        return prevCheckResult;
+        return PenteGameTerminationStatus.fail();
     }
 
     public static PenteGameState placePieceOnBoard(final PenteGameState prevState, final PenteGameAction action) {
@@ -141,7 +111,7 @@ public class PenteGameBoardUtil {
 
         // place the piece
         final PenteGameCoordinate coordinate = action.coordinate;
-        newState.board[coordinate.y][coordinate.x] = action.pieceColor;
+        newState.board.put(coordinate, action.pieceColor);
         newState.numOfEmptySpots -= 1;
 
         // make potential capture
@@ -156,9 +126,9 @@ public class PenteGameBoardUtil {
             tryToCaptureOneDirection(newState, pieceCoordinate, new int[] {-1 * direction[0], -1 * direction[1]});
         }
     }
-    private static final PenteGamePiece[] captureCandidate = new PenteGamePiece[PenteGame.CAPTURE_RANGE];
 
     private static void tryToCaptureOneDirection(final PenteGameState newState, final PenteGameCoordinate pieceCoordinate, final int[] direction) {
+        final PenteGamePiece[] captureCandidate = new PenteGamePiece[PenteGame.CAPTURE_RANGE];
         for (int i = 0; i < PenteGame.CAPTURE_RANGE; i++) {
             int currY = pieceCoordinate.y + i * direction[0];
             int currX = pieceCoordinate.x + i * direction[1];
@@ -166,7 +136,7 @@ public class PenteGameBoardUtil {
             if (!PenteGameCoordinate.isCoordinateValid(currY, currX)) {
                 return;
             }
-            captureCandidate[i] = newState.board[currY][currX];
+            captureCandidate[i] = newState.board.get(currY, currX);
         }
 
         boolean captureTwoEnd = captureCandidate[0] == captureCandidate[3];
@@ -174,8 +144,8 @@ public class PenteGameBoardUtil {
         boolean captureOpponentRelation = captureCandidate[0] != captureCandidate[1];
 
         if (captureTwoEnd && captureContent && captureOpponentRelation) {
-            newState.board[pieceCoordinate.y + direction[0]][pieceCoordinate.x + direction[1]] = null;
-            newState.board[pieceCoordinate.y + 2 * direction[0]][pieceCoordinate.x + 2 * direction[1]] = null;
+            newState.board.put(pieceCoordinate.y + direction[0], pieceCoordinate.x + direction[1], null);
+            newState.board.put(pieceCoordinate.y + 2 * direction[0], pieceCoordinate.x + 2 * direction[1], null);
 
             if (captureCandidate[0] == PenteGamePiece.BLACK) {
                 newState.blackCaptures++;
@@ -183,5 +153,32 @@ public class PenteGameBoardUtil {
                 newState.whiteCaptures++;
             }
         }
+    }
+
+    public static String boardToStr(final PenteGamePiece[][] board) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("    ");
+        for (int j = 0; j < PenteGame.BOARD_WIDTH; j++) {
+            builder.append(String.format("%c ", (char)('A' + j)));
+        }
+        builder.append("\n");
+
+        for (int i = 0; i < PenteGame.BOARD_HEIGHT; i++) {
+            builder.append(String.format("%3d ", (PenteGame.BOARD_HEIGHT - i)));
+            for (int j = 0; j < PenteGame.BOARD_WIDTH; j++) {
+                if (board[i][j] == null) {
+                    builder.append('.');
+                } else if (board[i][j] == PenteGamePiece.WHITE) {
+                    builder.append('W');
+                } else {
+                    builder.append('B');
+                }
+
+                builder.append(' ');
+            }
+            builder.append('\n');
+        }
+
+        return builder.toString();
     }
 }
