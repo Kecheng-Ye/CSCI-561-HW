@@ -1,7 +1,6 @@
 package PenteGame;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class PenteGameBoardUtil {
@@ -12,7 +11,7 @@ public class PenteGameBoardUtil {
             {1, -1}         // diagonal: top right to bottom left
     };
 
-    private static final int NUM_OF_DIRECTIONS = directions.length;
+    public static final int NUM_OF_DIRECTIONS = directions.length;
 
     private static final List<PenteGameCoordinate> horizontalStartPoint = new ArrayList<>() {{
         for (int i = 0; i < PenteGame.BOARD_HEIGHT; i++) {
@@ -20,29 +19,73 @@ public class PenteGameBoardUtil {
         }
     }};
 
+    public static List<PenteGameCoordinate> horizontalStartPointWithAABB(final PenteGameCoordinate leftTop, final PenteGameCoordinate rightBottom) {
+        int height = rightBottom.y - leftTop.y + 1;
+        return new ArrayList<>() {{
+            for (int i = 0; i < height; i++) {
+                add(PenteGameCoordinate.getCoordinate(i + leftTop.y, leftTop.x));
+            }
+        }};
+    }
+
     private static final List<PenteGameCoordinate> verticalStartPoint = new ArrayList<>() {{
         for (int i = 0; i < PenteGame.BOARD_WIDTH; i++) {
             add(PenteGameCoordinate.getCoordinate(0, i));
         }
     }};
 
+    public static List<PenteGameCoordinate> verticalStartPointWithAABB(final PenteGameCoordinate leftTop, final PenteGameCoordinate rightBottom) {
+        int width = rightBottom.x - leftTop.x + 1;
+        return new ArrayList<>() {{
+            for (int i = 0; i < width; i++) {
+                add(PenteGameCoordinate.getCoordinate(leftTop.y, i + leftTop.x));
+            }
+        }};
+    }
+
     private static final List<PenteGameCoordinate> leftDiagonalStartPoint = new ArrayList<>() {{
         for (int i = 0; i < (PenteGame.BOARD_HEIGHT + PenteGame.BOARD_WIDTH - 1); i++) {
             add(PenteGameCoordinate.getCoordinate(
                     Math.max(0, PenteGame.BOARD_HEIGHT - 1 - i),
-                    Math.max(0, i - PenteGame.BOARD_WIDTH - 1))
+                    Math.max(0, i - (PenteGame.BOARD_HEIGHT - 1)))
             );
         }
     }};
 
+    public static List<PenteGameCoordinate> leftDiagonalStartPointWithAABB(final PenteGameCoordinate leftTop, final PenteGameCoordinate rightBottom) {
+        int height = rightBottom.y - leftTop.y + 1;
+        int width = rightBottom.x - leftTop.x + 1;
+        return new ArrayList<>() {{
+            for (int i = 0; i < (height + width - 1); i++) {
+                add(PenteGameCoordinate.getCoordinate(
+                        Math.max(0, height - 1 - i) + leftTop.y,
+                        Math.max(0, i - (height - 1)) + leftTop.x)
+                );
+            }
+        }};
+    }
+
     private static final List<PenteGameCoordinate> rightDiagonalStartPoint = new ArrayList<>() {{
         for (int i = 0; i < (PenteGame.BOARD_HEIGHT + PenteGame.BOARD_WIDTH - 1); i++) {
             add(PenteGameCoordinate.getCoordinate(
-                    Math.max(0, i - PenteGame.BOARD_HEIGHT - 1),
+                    Math.max(0, i - (PenteGame.BOARD_WIDTH - 1)),
                     Math.min(PenteGame.BOARD_WIDTH - 1, i))
             );
         }
     }};
+
+    public static List<PenteGameCoordinate> rightDiagonalStartPointWithAABB(final PenteGameCoordinate leftTop, final PenteGameCoordinate rightBottom) {
+        int height = rightBottom.y - leftTop.y + 1;
+        int width = rightBottom.x - leftTop.x + 1;
+        return new ArrayList<>() {{
+            for (int i = 0; i < (height + width - 1); i++) {
+                add(PenteGameCoordinate.getCoordinate(
+                        Math.max(0, i - (width - 1)) + leftTop.y,
+                        Math.min(width - 1, i) + leftTop.x)
+                );
+            }
+        }};
+    }
 
     private static final List<List<PenteGameCoordinate>> startPoints = List.of(
             horizontalStartPoint,
@@ -146,6 +189,7 @@ public class PenteGameBoardUtil {
         if (captureTwoEnd && captureContent && captureOpponentRelation) {
             newState.board.put(pieceCoordinate.y + direction[0], pieceCoordinate.x + direction[1], null);
             newState.board.put(pieceCoordinate.y + 2 * direction[0], pieceCoordinate.x + 2 * direction[1], null);
+            newState.numOfEmptySpots += 2;
 
             if (captureCandidate[0] == PenteGamePiece.BLACK) {
                 newState.blackCaptures++;
@@ -153,6 +197,40 @@ public class PenteGameBoardUtil {
                 newState.whiteCaptures++;
             }
         }
+    }
+
+    public static PenteGameCoordinate[] getBoardAABB(final PenteGameBoard board) {
+        final PenteGameCoordinate leftTop = new PenteGameCoordinate(PenteGame.BOARD_HEIGHT, PenteGame.BOARD_WIDTH);
+        final PenteGameCoordinate rightBottom = new PenteGameCoordinate(-1, -1);
+
+        for (PenteGameCoordinateIterator it = new PenteGameCoordinateIterator(); it.hasNext(); ) {
+            PenteGameCoordinate coordinate = it.next();
+
+            if (board.get(coordinate) == null) continue;
+
+            leftTop.y = Math.min(leftTop.y, coordinate.y);
+            leftTop.x = Math.min(leftTop.x, coordinate.x);
+            rightBottom.y = Math.max(rightBottom.y, coordinate.y);
+            rightBottom.x = Math.max(rightBottom.x, coordinate.x);
+        }
+
+        return new PenteGameCoordinate[] {leftTop, rightBottom};
+    }
+
+    public static boolean outOfRange(final PenteGameCoordinate center, final PenteGameCoordinate testPoint, final int radius) {
+        return Math.abs(center.y - testPoint.y) >= radius ||
+               Math.abs(center.x - testPoint.x) >= radius;
+    }
+
+    public static boolean withInOfSquareRange(
+            final PenteGameCoordinate leftTop, final PenteGameCoordinate rightBottom,
+            final PenteGameCoordinate testPoint,
+            final int radius
+    ) {
+        return (leftTop.y - Math.min(testPoint.y, leftTop.y)) < radius             &&
+               (leftTop.x - Math.min(testPoint.x, leftTop.x)) < radius             &&
+               (Math.max(testPoint.y, rightBottom.y) - rightBottom.y) < radius     &&
+               (Math.max(testPoint.x, rightBottom.x) - rightBottom.x) < radius;
     }
 
     public static String boardToStr(final PenteGamePiece[][] board) {

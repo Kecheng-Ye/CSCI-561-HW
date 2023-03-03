@@ -26,7 +26,7 @@ public class PenteGameCoordinate {
 
     public static final List<PenteGameCoordinate> allValidCoordinate = new ArrayList<>() {{
         for (int i = 0; i < PenteGame.BOARD_HEIGHT; i++) {
-            for (int j = 0; j < PenteGame.BOARD_HEIGHT; j++) {
+            for (int j = 0; j < PenteGame.BOARD_WIDTH; j++) {
                 add(new PenteGameCoordinate(i, j));
             }
         }
@@ -54,5 +54,19 @@ public class PenteGameCoordinate {
         } else {
             throw new RuntimeException();
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+
+        if (!(obj instanceof PenteGameCoordinate)) {
+            return false;
+        }
+
+        PenteGameCoordinate anotherCoordinate = (PenteGameCoordinate) obj;
+        return (anotherCoordinate.x == this.x) && (anotherCoordinate.y == this.y);
     }
 }

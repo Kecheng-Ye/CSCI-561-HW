@@ -1,19 +1,26 @@
 package PenteGame;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public class PenteGameBoard {
     private final int[] whitePieces;
     private final int[] blackPieces;
+    public PenteGameCoordinate leftTop;
+    public PenteGameCoordinate rightBottom;
 
     public PenteGameBoard() {
         this.whitePieces = new int[PenteGame.BOARD_HEIGHT];
         this.blackPieces = new int[PenteGame.BOARD_HEIGHT];
+        this.leftTop = new PenteGameCoordinate(PenteGame.BOARD_HEIGHT, PenteGame.BOARD_WIDTH);
+        this.rightBottom = new PenteGameCoordinate(-1, -1);
     }
 
     public PenteGameBoard(final PenteGameBoard board) {
         this.whitePieces = new int[PenteGame.BOARD_HEIGHT];
         this.blackPieces = new int[PenteGame.BOARD_HEIGHT];
+        this.leftTop = board.leftTop;
+        this.rightBottom = board.rightBottom;
 
         System.arraycopy(board.whitePieces, 0, whitePieces, 0, PenteGame.BOARD_HEIGHT);
         System.arraycopy(board.blackPieces, 0, blackPieces, 0, PenteGame.BOARD_HEIGHT);
@@ -34,6 +41,17 @@ public class PenteGameBoard {
     public void put(final int y, final int x, final PenteGamePiece piece) {
         this.whitePieces[y] = putPieceOnEncoding(this.whitePieces[y], x, piece == PenteGamePiece.WHITE);
         this.blackPieces[y] = putPieceOnEncoding(this.blackPieces[y], x, piece == PenteGamePiece.BLACK);
+
+        if (piece != null) {
+            leftTop.y = Math.min(leftTop.y, y);
+            leftTop.x = Math.min(leftTop.x, x);
+            rightBottom.y = Math.max(rightBottom.y, y);
+            rightBottom.x = Math.max(rightBottom.x, x);
+        } else {
+            final PenteGameCoordinate[] AABB = PenteGameBoardUtil.getBoardAABB(this);
+            this.leftTop = AABB[0];
+            this.rightBottom = AABB[1];
+        }
     }
 
     public void put(final PenteGameCoordinate coordinate, final PenteGamePiece piece) {
@@ -89,6 +107,6 @@ public class PenteGameBoard {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(this.whitePieces) + Arrays.hashCode(this.blackPieces);
+        return Objects.hash(Arrays.hashCode(this.whitePieces), Arrays.hashCode(this.blackPieces));
     }
 }

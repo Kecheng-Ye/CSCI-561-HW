@@ -2,7 +2,7 @@ package PenteGame;
 
 import Game.State;
 
-import java.util.Arrays;
+import java.util.Objects;
 
 public class PenteGameState extends State {
     public final PenteGameBoard board;
@@ -56,6 +56,6 @@ public class PenteGameState extends State {
 
     @Override
     public int hashCode() {
-        return this.board.hashCode();
+        return Objects.hash(this.board.hashCode(), this.blackCaptures, this.whiteCaptures);
     }
 }
