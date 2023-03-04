@@ -6,18 +6,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PenteGameCoordinate {
-    public int x;
-    public int y;
+    public final int x;
+    public final int y;
+
+    public static PenteGameCoordinate leftTopInit = new PenteGameCoordinate(PenteGame.BOARD_HEIGHT, PenteGame.BOARD_WIDTH);
+    public static PenteGameCoordinate rightBottomInit = new PenteGameCoordinate(-1, -1);
 
     public PenteGameCoordinate(final int y, final int x) {
         this.x = x;
         this.y = y;
     }
 
-    public PenteGameCoordinate(final PenteGameCoordinate coordinate) {
-        this.x = coordinate.x;
-        this.y = coordinate.y;
-    }
+    // public PenteGameCoordinate(final PenteGameCoordinate coordinate) {
+    //     this.x = coordinate.x;
+    //     this.y = coordinate.y;
+    // }
 
     @Override
     public String toString() {
@@ -33,7 +36,7 @@ public class PenteGameCoordinate {
     }};
 
     public static PenteGameCoordinate getCoordinate(final int y, final int x) {
-        assert isCoordinateValid(y, x);
+        assert isCoordinateValid(y, x) : String.format("Try to get Y: %d, X: %d", y, x);
 
         return allValidCoordinate.get(PenteGame.BOARD_WIDTH * y + x);
     }
@@ -50,7 +53,7 @@ public class PenteGameCoordinate {
         if (matcher.find()) {
             int y = PenteGame.BOARD_HEIGHT - Integer.parseInt(matcher.group(1));
             int x = matcher.group(2).charAt(0) - 'A';
-            return new PenteGameCoordinate(y, x);
+            return getCoordinate(y, x);
         } else {
             throw new RuntimeException();
         }

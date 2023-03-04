@@ -5,7 +5,6 @@ import Utils.Partition;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,6 +33,7 @@ public class MinMaxSearchSolver<S extends State, A extends Action, P extends Pla
     }
 
     public MinMaxDecisionResult MinMaxDecision(final BiPlayerGame<S, A, P> game, final S state) {
+        this.visited.clear();
         final MinMaxDecisionResult answer = MinMaxDecision(game, state, game.validActions(state));
         assert answer.action != null;
 
@@ -100,6 +100,7 @@ public class MinMaxSearchSolver<S extends State, A extends Action, P extends Pla
     }
 
     public MinMaxDecisionResult MinMaxDecisionMultiThread(final BiPlayerGame<S, A, P> game, final S state, int numOfThread) {
+        this.visited.clear();
         multiThreadResults = new ArrayList<>(Collections.nCopies(numOfThread, null));
         final List<A> validActions = game.validActions(state);
         final List<List<A>> actionList = Partition.partition(validActions, numOfThread);

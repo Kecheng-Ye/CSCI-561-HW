@@ -75,7 +75,7 @@ public class AlphaBetaWithHeursticsMinMax<S extends State, A extends Action, P e
             final float curUtility = MinValue(game, game.result(state, action), alpha, beta, depth + 1);
             if (!isUtilityValid(curUtility)) continue;
 
-            maxUtility = Math.max(maxUtility, MinValue(game, game.result(state, action), alpha, beta, depth + 1));
+            maxUtility = Math.max(maxUtility, curUtility);
             if (maxUtility > beta) {
                 visited.put(state, maxUtility);
                 return maxUtility;

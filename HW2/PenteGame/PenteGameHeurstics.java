@@ -3,7 +3,6 @@ package PenteGame;
 import MinMaxSearchSolver.Heurstics;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class PenteGameHeurstics implements Heurstics<PenteGameState, PenteGamePlayer> {
@@ -16,18 +15,15 @@ public class PenteGameHeurstics implements Heurstics<PenteGameState, PenteGamePl
         PenteGamePlayer opponent = PenteGamePlayer.getOpponent(self);
 
         final float captureScore = captureScore(state, self) - captureScore(state, opponent);
-        final float connectedComponentScore = connectedComponentScore(state, self) - connectedComponentScore(state, opponent);
-        final float consecutivePieceScore = consecutivePieceScore(state, self) - consecutivePieceScore(state, opponent);
+        // final float connectedComponentScore = connectedComponentScore(state, self) - connectedComponentScore(state, opponent);
+        final float consecutivePieceScore = clamp(consecutivePieceScore(state, self) - consecutivePieceScore(state, opponent), -1f, 1f);
 
-        final float score = captureScore * 0.33f + connectedComponentScore * 0.33f + consecutivePieceScore * 0.33f;
-        // final float score = captureScore * 0.33f + connectedComponentScore * 0.33f;
+        final float score = captureScore * 0.3f + consecutivePieceScore * 0.7f;
         return clamp(score, -1f, 1f);
     }
 
     private float connectedComponentScore(final PenteGameState state, final PenteGamePlayer player) {
         final boolean[][] isVisited = new boolean[PenteGame.BOARD_HEIGHT][PenteGame.BOARD_WIDTH];
-        for (boolean[] row: isVisited)
-            Arrays.fill(row, false);
 
         int totalSamePieceIslandArea = 0;
         int numOfComponents = 0;
@@ -101,41 +97,49 @@ public class PenteGameHeurstics implements Heurstics<PenteGameState, PenteGamePl
                 PenteGameBoardUtil.rightDiagonalStartPointWithAABB(state.board.leftTop, state.board.rightBottom)
         );
 
-        float score = 0f;
-        final int width = state.board.rightBottom.x - state.board.leftTop.x;
-        final int height = state.board.rightBottom.y - state.board.leftTop.y;
-        float factor = (Math.max(width, height) <= 5) ? (0.5f / Math.max(width, height)) : (2f / Math.max(width, height));
+        float maxScore1 = 0f;
+        float maxScore2 = 0f;
+        float maxScore3 = 0f;
+
+        // final int width = state.board.rightBottom.x - state.board.leftTop.x;
+        // final int height = state.board.rightBottom.y - state.board.leftTop.y;
+        // float factor = (Math.max(width, height) <= 5) ? (0.5f / Math.max(width, height)) : (2f / Math.max(width, height));
 
         for (int i = 0; i < PenteGameBoardUtil.NUM_OF_DIRECTIONS; i++) {
             final int[] directionMove = PenteGameBoardUtil.directions[i];
             final List<PenteGameCoordinate> directionStartPoints = startPoints.get(i);
             for (final PenteGameCoordinate startPoint : directionStartPoints) {
-                score += consecutivePieceScoreOneDimension(state.board, startPoint, directionMove, player) * factor;
+                final float currScore = consecutivePieceScoreOneDimension(state.board, startPoint, directionMove, player);
+
+                if (currScore >= maxScore1) {
+                    maxScore3 = maxScore2;
+                    maxScore2 = maxScore1;
+                    maxScore1 = currScore;
+                } else if (currScore >= maxScore2) {
+                    maxScore3 = maxScore2;
+                    maxScore2 = currScore;
+                } else if (currScore >= maxScore3) {
+                    maxScore3 = currScore;
+                }
             }
         }
 
-        return clamp(score, -1f, 1f);
+        return (maxScore1 + maxScore2 + maxScore3) / 3;
+
+        // return clamp(score, -1f, 1f);
     }
 
     private static class ConsecutivePiecesRange {
         public PenteGameCoordinate prevOpponentPiece;
         public PenteGameCoordinate nextOpponentPiece;
-        public final PenteGameCoordinate start;
-        public final PenteGameCoordinate end;
-        public float length;
-
-        // public ConsecutivePiecesRange(final PenteGameCoordinate start) {
-        //     this.start = new PenteGameCoordinate(start);
-        //     this.end = new PenteGameCoordinate(start);
-        //     this.prevOpponentPiece = null;
-        //     this.nextOpponentPiece = null;
-        //     this.length = 1f;
-        // }
+        public PenteGameCoordinate start;
+        public PenteGameCoordinate end;
+        private float length;
 
         public ConsecutivePiecesRange(final PenteGameCoordinate start, final PenteGameCoordinate prevOpponentPiece) {
-            this.start = new PenteGameCoordinate(start);
-            this.end = new PenteGameCoordinate(start);
-            this.prevOpponentPiece = (prevOpponentPiece == null) ? null : new PenteGameCoordinate(prevOpponentPiece);
+            this.start = start;
+            this.end = start;
+            this.prevOpponentPiece = prevOpponentPiece;
             this.nextOpponentPiece = null;
             this.length = 1f;
         }
@@ -148,8 +152,7 @@ public class PenteGameHeurstics implements Heurstics<PenteGameState, PenteGamePl
 
             if (distance > 3) return false;
 
-            this.end.y = newEnd.y;
-            this.end.x = newEnd.x;
+            this.end = newEnd;
             this.length += (float)1 / distance;
             return true;
         }
@@ -166,21 +169,25 @@ public class PenteGameHeurstics implements Heurstics<PenteGameState, PenteGamePl
         }
 
         public float calculateScore(final int[] moveDirection) {
-            if (prevOpponentPiece == null && nextOpponentPiece == null) {
-                return length;
+            final float score = (length == 1) ? 0f : (float)Math.pow(3, length);
+
+            if (prevOpponentPiece != null || nextOpponentPiece != null) {
+                int distFromPrevOpponent = (prevOpponentPiece != null) ?
+                        ConsecutivePiecesRange.calculateDist(prevOpponentPiece, start, moveDirection) :
+                        Integer.MAX_VALUE;
+                int distFromCurrOpponent = (nextOpponentPiece != null) ?
+                        ConsecutivePiecesRange.calculateDist(end, nextOpponentPiece, moveDirection) :
+                        Integer.MAX_VALUE;
+                assert distFromPrevOpponent >= 0 && distFromCurrOpponent >= 0;
+
+                if (distFromPrevOpponent == 1 && distFromCurrOpponent == 1) {
+                    return 0;
+                } else if (distFromPrevOpponent == 1 || distFromCurrOpponent == 1) {
+                    return score / 2;
+                }
             }
 
-            int distFromPrevOpponent = (prevOpponentPiece != null) ? ConsecutivePiecesRange.calculateDist(prevOpponentPiece, start, moveDirection) : Integer.MAX_VALUE;
-            int distFromCurrOpponent = (nextOpponentPiece != null) ? ConsecutivePiecesRange.calculateDist(end, nextOpponentPiece, moveDirection) : Integer.MAX_VALUE;
-            assert distFromPrevOpponent >= 0 && distFromCurrOpponent >= 0;
-
-            if (distFromPrevOpponent == 1 && distFromCurrOpponent == 1) {
-                return 0;
-            } else if (distFromPrevOpponent == 1 || distFromCurrOpponent == 1) {
-                return length / 2;
-            }
-
-            return length;
+            return score;
         }
     }
 
@@ -193,31 +200,38 @@ public class PenteGameHeurstics implements Heurstics<PenteGameState, PenteGamePl
         List<ConsecutivePiecesRange> ranges = new ArrayList<>();
         PenteGameCoordinate opponentPiece = null;
 
-        PenteGameCoordinate temp = new PenteGameCoordinate(startCoordinate);
+        int currY = startCoordinate.y;
+        int currX = startCoordinate.x;
 
-        while (temp.y <= board.rightBottom.y && temp.x <= board.rightBottom.x) {
-            PenteGamePiece piece = board.get(temp);
+        while (currY >= board.leftTop.y && currX >= board.leftTop.x &&
+               currY <= board.rightBottom.y && currX <= board.rightBottom.x)
+        {
+            PenteGameCoordinate currCoordinate = PenteGameCoordinate.getCoordinate(currY, currX);
+            PenteGamePiece piece = board.get(currY, currX);
+
+
             if (piece != null) {
                 if (piece != player.playerType) {
-                    opponentPiece = new PenteGameCoordinate(temp);
+                    opponentPiece = PenteGameCoordinate.getCoordinate(currY, currX);
                     if (!ranges.isEmpty()) {
                         final ConsecutivePiecesRange lastRange = ranges.get(ranges.size() - 1);
-                        lastRange.nextOpponentPiece = new PenteGameCoordinate(temp);
+                        if (lastRange.nextOpponentPiece == null)
+                            lastRange.nextOpponentPiece =  currCoordinate;
                     }
                 } else {
                     if (ranges.isEmpty()) {
-                        ranges.add(new ConsecutivePiecesRange(temp, opponentPiece));
+                        ranges.add(new ConsecutivePiecesRange(currCoordinate, opponentPiece));
                     } else {
                         final ConsecutivePiecesRange lastRange = ranges.get(ranges.size() - 1);
-                        if (!lastRange.enlarge(temp, moveDirection)) {
-                            ranges.add(new ConsecutivePiecesRange(temp, opponentPiece));
+                        if (!lastRange.enlarge(currCoordinate, moveDirection)) {
+                            ranges.add(new ConsecutivePiecesRange(currCoordinate, opponentPiece));
                         }
                     }
                 }
             }
 
-            temp.y += moveDirection[0];
-            temp.x += moveDirection[1];
+            currY += moveDirection[0];
+            currX += moveDirection[1];
         }
 
         if (ranges.isEmpty()) return 0f;

@@ -200,18 +200,23 @@ public class PenteGameBoardUtil {
     }
 
     public static PenteGameCoordinate[] getBoardAABB(final PenteGameBoard board) {
-        final PenteGameCoordinate leftTop = new PenteGameCoordinate(PenteGame.BOARD_HEIGHT, PenteGame.BOARD_WIDTH);
-        final PenteGameCoordinate rightBottom = new PenteGameCoordinate(-1, -1);
+        PenteGameCoordinate leftTop = PenteGameCoordinate.leftTopInit;
+        PenteGameCoordinate rightBottom = PenteGameCoordinate.rightBottomInit;
 
         for (PenteGameCoordinateIterator it = new PenteGameCoordinateIterator(); it.hasNext(); ) {
             PenteGameCoordinate coordinate = it.next();
 
             if (board.get(coordinate) == null) continue;
 
-            leftTop.y = Math.min(leftTop.y, coordinate.y);
-            leftTop.x = Math.min(leftTop.x, coordinate.x);
-            rightBottom.y = Math.max(rightBottom.y, coordinate.y);
-            rightBottom.x = Math.max(rightBottom.x, coordinate.x);
+            leftTop = PenteGameCoordinate.getCoordinate(
+                    Math.min(leftTop.y, coordinate.y),
+                    Math.min(leftTop.x, coordinate.x)
+            );
+
+            rightBottom = PenteGameCoordinate.getCoordinate(
+                    Math.max(rightBottom.y, coordinate.y),
+                    Math.max(rightBottom.x, coordinate.x)
+            );
         }
 
         return new PenteGameCoordinate[] {leftTop, rightBottom};

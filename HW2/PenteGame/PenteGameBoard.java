@@ -12,8 +12,8 @@ public class PenteGameBoard {
     public PenteGameBoard() {
         this.whitePieces = new int[PenteGame.BOARD_HEIGHT];
         this.blackPieces = new int[PenteGame.BOARD_HEIGHT];
-        this.leftTop = new PenteGameCoordinate(PenteGame.BOARD_HEIGHT, PenteGame.BOARD_WIDTH);
-        this.rightBottom = new PenteGameCoordinate(-1, -1);
+        this.leftTop = PenteGameCoordinate.leftTopInit;
+        this.rightBottom = PenteGameCoordinate.rightBottomInit;
     }
 
     public PenteGameBoard(final PenteGameBoard board) {
@@ -43,10 +43,15 @@ public class PenteGameBoard {
         this.blackPieces[y] = putPieceOnEncoding(this.blackPieces[y], x, piece == PenteGamePiece.BLACK);
 
         if (piece != null) {
-            leftTop.y = Math.min(leftTop.y, y);
-            leftTop.x = Math.min(leftTop.x, x);
-            rightBottom.y = Math.max(rightBottom.y, y);
-            rightBottom.x = Math.max(rightBottom.x, x);
+            leftTop = PenteGameCoordinate.getCoordinate(
+                    Math.min(leftTop.y, y),
+                    Math.min(leftTop.x, x)
+            );
+
+            rightBottom = PenteGameCoordinate.getCoordinate(
+                    Math.max(rightBottom.y, y),
+                    Math.max(rightBottom.x, x)
+            );
         } else {
             final PenteGameCoordinate[] AABB = PenteGameBoardUtil.getBoardAABB(this);
             this.leftTop = AABB[0];
@@ -102,7 +107,7 @@ public class PenteGameBoard {
             }
         }
 
-        return true;
+        return this.leftTop.equals(anotherBoard.leftTop) && this.rightBottom.equals(anotherBoard.rightBottom);
     }
 
     @Override

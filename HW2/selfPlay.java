@@ -27,7 +27,7 @@ public class selfPlay {
             PenteGameAction action = null;
             if (currentPlayer == AI) {
                 long start = System.currentTimeMillis();
-                action = solver.MinMaxDecisionMultiThread(game, temp, 5).action;
+                action = solver.MinMaxDecisionMultiThread(game, temp, 8).action;
                 long finish = System.currentTimeMillis();
                 long timeElapsed = finish - start;
                 System.out.printf("Used time: timeElapsed %d\n", timeElapsed);
@@ -38,5 +38,7 @@ public class selfPlay {
 
             temp = game.result(temp, action);
         }
+
+        System.out.println(temp);
     }
 }
