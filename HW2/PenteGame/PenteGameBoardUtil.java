@@ -11,6 +11,10 @@ public class PenteGameBoardUtil {
             {1, -1}         // diagonal: top right to bottom left
     };
 
+    public static int[] negativeDirection(final int[] direction) {
+        return new int[] {direction[0] * -1, direction[1] * -1};
+    }
+
     public static final int NUM_OF_DIRECTIONS = directions.length;
 
     private static final List<PenteGameCoordinate> horizontalStartPoint = new ArrayList<>() {{
@@ -94,6 +98,15 @@ public class PenteGameBoardUtil {
             rightDiagonalStartPoint
     );
 
+    public static List<List<PenteGameCoordinate>> startPointsBasedOnBoard(final PenteGameBoard board) {
+        return List.of(
+                PenteGameBoardUtil.horizontalStartPointWithAABB(board.leftTop, board.rightBottom),
+                PenteGameBoardUtil.verticalStartPointWithAABB(board.leftTop, board.rightBottom),
+                PenteGameBoardUtil.leftDiagonalStartPointWithAABB(board.leftTop, board.rightBottom),
+                PenteGameBoardUtil.rightDiagonalStartPointWithAABB(board.leftTop, board.rightBottom)
+        );
+    }
+
     private static PenteGameTerminationStatus checkBoardHasConsecutivePiecesOneDimension(
             final PenteGameBoard board,
             final PenteGameCoordinate startCoordinate,
@@ -104,7 +117,7 @@ public class PenteGameBoardUtil {
         int currX = startCoordinate.x;
         int currY = startCoordinate.y;
 
-        while (PenteGameCoordinate.isCoordinateValid(currY, currX)) {
+        while (isWithInAABB(board.leftTop, board.rightBottom, currY, currX)) {
             if (board.get(currY, currX) == null) {
                 samePieceCount = 0;
                 currPiece = null;
@@ -129,9 +142,11 @@ public class PenteGameBoardUtil {
     }
 
     public static PenteGameTerminationStatus checkBoardHasConsecutivePieces(final PenteGameBoard board) {
+        final List<List<PenteGameCoordinate>> currStartPoints = startPointsBasedOnBoard(board);
+
         for (int i = 0; i < NUM_OF_DIRECTIONS; i++) {
             final int[] directionMove = directions[i];
-            final List<PenteGameCoordinate> directionStartPoints = startPoints.get(i);
+            final List<PenteGameCoordinate> directionStartPoints = currStartPoints.get(i);
 
             for (final PenteGameCoordinate startPoint : directionStartPoints) {
                 final PenteGameTerminationStatus status = checkBoardHasConsecutivePiecesOneDimension(
@@ -166,7 +181,7 @@ public class PenteGameBoardUtil {
     private static void tryToCapture(final PenteGameState newState, final PenteGameCoordinate pieceCoordinate) {
         for (final int[] direction : directions) {
             tryToCaptureOneDirection(newState, pieceCoordinate, direction);
-            tryToCaptureOneDirection(newState, pieceCoordinate, new int[] {-1 * direction[0], -1 * direction[1]});
+            tryToCaptureOneDirection(newState, pieceCoordinate, negativeDirection(direction));
         }
     }
 
@@ -222,12 +237,12 @@ public class PenteGameBoardUtil {
         return new PenteGameCoordinate[] {leftTop, rightBottom};
     }
 
-    public static boolean outOfRange(final PenteGameCoordinate center, final PenteGameCoordinate testPoint, final int radius) {
+    public static boolean outOfSquareRange(final PenteGameCoordinate center, final PenteGameCoordinate testPoint, final int radius) {
         return Math.abs(center.y - testPoint.y) >= radius ||
                Math.abs(center.x - testPoint.x) >= radius;
     }
 
-    public static boolean withInOfSquareRange(
+    public static boolean withinSquareRange(
             final PenteGameCoordinate leftTop, final PenteGameCoordinate rightBottom,
             final PenteGameCoordinate testPoint,
             final int radius
@@ -236,6 +251,32 @@ public class PenteGameBoardUtil {
                (leftTop.x - Math.min(testPoint.x, leftTop.x)) < radius             &&
                (Math.max(testPoint.y, rightBottom.y) - rightBottom.y) < radius     &&
                (Math.max(testPoint.x, rightBottom.x) - rightBottom.x) < radius;
+    }
+
+    public static boolean isWithInAABB(final PenteGameCoordinate leftTop, final PenteGameCoordinate rightBottom,
+                                       final int currY, final int currX)
+    {
+        assert leftTop != PenteGameCoordinate.leftTopInit && rightBottom != PenteGameCoordinate.rightBottomInit;
+
+        return currY >= leftTop.y && currX >= leftTop.x &&
+               currY <= rightBottom.y && currX <= rightBottom.x;
+    }
+
+    public static int distToBoardBoundary(final PenteGameCoordinate point, final int[] moveDirection) {
+        return Math.min(
+                distToBoardBoundaryOneDimension(point.y, moveDirection[0], PenteGame.BOARD_HEIGHT),
+                distToBoardBoundaryOneDimension(point.x, moveDirection[1], PenteGame.BOARD_WIDTH)
+        );
+    }
+
+    private static int distToBoardBoundaryOneDimension(final int coordinate, final int direction, final int boundary) {
+        if (direction == 0)
+            return Integer.MAX_VALUE;
+
+        if (direction < 0)
+            return coordinate;
+
+        return boundary - coordinate - 1;
     }
 
     public static String boardToStr(final PenteGamePiece[][] board) {

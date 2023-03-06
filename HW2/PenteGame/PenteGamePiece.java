@@ -4,21 +4,23 @@ public enum PenteGamePiece {
     WHITE,
     BLACK;
 
-    private static final String WHITE_PLAYER_STRING = "WHITE";
-    private static final String BLACK_PLAYER_STRING = "BLACK";
-
-    public static PenteGamePiece parseFromStr(final String str) {
-        if (str.equals(WHITE_PLAYER_STRING)) {
-            return WHITE;
-        } else if (str.equals(BLACK_PLAYER_STRING)) {
-            return BLACK;
-        } else {
-            throw new RuntimeException("Cannot parse string to correct PenteGamePiece");
-        }
-    }
+    static final String WHITE_PLAYER_STRING = "WHITE";
+    static final String BLACK_PLAYER_STRING = "BLACK";
 
     @Override
     public String toString() {
         return (this == WHITE) ? WHITE_PLAYER_STRING : BLACK_PLAYER_STRING;
+    }
+
+    public static PenteGamePiece parseFromBoardStr(final char character) {
+        if (character == '.') {
+            return null;
+        } else if (character == 'W') {
+            return WHITE;
+        } else if (character == 'B') {
+            return BLACK;
+        };
+
+        throw new IllegalArgumentException("Wrong Input");
     }
 }

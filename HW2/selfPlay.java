@@ -1,6 +1,7 @@
 import MinMaxSearchSolver.MinMaxSearchSolver;
 import PenteGame.*;
 
+import java.util.List;
 import java.util.Scanner;
 import MinMaxSearchSolver.*;
 
@@ -27,13 +28,15 @@ public class selfPlay {
             PenteGameAction action = null;
             if (currentPlayer == AI) {
                 long start = System.currentTimeMillis();
-                action = solver.MinMaxDecisionMultiThread(game, temp, 8).action;
+                action = solver.MinMaxDecision(game, temp).action;
                 long finish = System.currentTimeMillis();
                 long timeElapsed = finish - start;
                 System.out.printf("Used time: timeElapsed %d\n", timeElapsed);
             } else {
-                System.out.print("Enter a Action: ");
-                action = PenteGameAction.generateFromStr(SELF, scanner.nextLine());
+                do {
+                    System.out.print("Enter a Action: ");
+                    action = PenteGameAction.parseFromStr(SELF, scanner.nextLine());
+                } while (temp.board.get(action.coordinate) != null);
             }
 
             temp = game.result(temp, action);

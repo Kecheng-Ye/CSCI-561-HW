@@ -12,15 +12,10 @@ public class PenteGameCoordinate {
     public static PenteGameCoordinate leftTopInit = new PenteGameCoordinate(PenteGame.BOARD_HEIGHT, PenteGame.BOARD_WIDTH);
     public static PenteGameCoordinate rightBottomInit = new PenteGameCoordinate(-1, -1);
 
-    public PenteGameCoordinate(final int y, final int x) {
+    private PenteGameCoordinate(final int y, final int x) {
         this.x = x;
         this.y = y;
     }
-
-    // public PenteGameCoordinate(final PenteGameCoordinate coordinate) {
-    //     this.x = coordinate.x;
-    //     this.y = coordinate.y;
-    // }
 
     @Override
     public String toString() {

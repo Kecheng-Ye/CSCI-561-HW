@@ -2,6 +2,8 @@ package PenteGame;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Scanner;
+import java.util.stream.IntStream;
 
 public class PenteGameBoard {
     private final int[] whitePieces;
@@ -52,10 +54,6 @@ public class PenteGameBoard {
                     Math.max(rightBottom.y, y),
                     Math.max(rightBottom.x, x)
             );
-        } else {
-            final PenteGameCoordinate[] AABB = PenteGameBoardUtil.getBoardAABB(this);
-            this.leftTop = AABB[0];
-            this.rightBottom = AABB[1];
         }
     }
 
@@ -113,5 +111,20 @@ public class PenteGameBoard {
     @Override
     public int hashCode() {
         return Objects.hash(Arrays.hashCode(this.whitePieces), Arrays.hashCode(this.blackPieces));
+    }
+
+    public static PenteGameBoard parseFromFile(final Scanner fileReader) {
+        final PenteGameBoard result = new PenteGameBoard();
+
+        for (int i = 0; i < PenteGame.BOARD_HEIGHT; i++) {
+            String oneRowStr = fileReader.nextLine();
+            assert oneRowStr.length() == PenteGame.BOARD_WIDTH;
+
+            for (int j = 0; j < PenteGame.BOARD_WIDTH; j++) {
+                result.put(i, j, PenteGamePiece.parseFromBoardStr(oneRowStr.charAt(0)));
+            }
+        }
+
+        return result;
     }
 }

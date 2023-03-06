@@ -15,10 +15,10 @@ public class PenteGameHeurstics implements Heurstics<PenteGameState, PenteGamePl
         PenteGamePlayer opponent = PenteGamePlayer.getOpponent(self);
 
         final float captureScore = captureScore(state, self) - captureScore(state, opponent);
-        // final float connectedComponentScore = connectedComponentScore(state, self) - connectedComponentScore(state, opponent);
-        final float consecutivePieceScore = clamp(consecutivePieceScore(state, self) - consecutivePieceScore(state, opponent), -1f, 1f);
+        final float connectedComponentScore = connectedComponentScore(state, self) - connectedComponentScore(state, opponent);
+        final float consecutivePieceScore = consecutivePieceScore(state, self) - consecutivePieceScore(state, opponent);
 
-        final float score = captureScore * 0.3f + consecutivePieceScore * 0.7f;
+        final float score = captureScore * 0.25f + connectedComponentScore * 0.05f + consecutivePieceScore * 0.7f;
         return clamp(score, -1f, 1f);
     }
 
@@ -90,20 +90,11 @@ public class PenteGameHeurstics implements Heurstics<PenteGameState, PenteGamePl
     }
 
     private float consecutivePieceScore(final PenteGameState state, final PenteGamePlayer player) {
-        List<List<PenteGameCoordinate>> startPoints = List.of(
-                PenteGameBoardUtil.horizontalStartPointWithAABB(state.board.leftTop, state.board.rightBottom),
-                PenteGameBoardUtil.verticalStartPointWithAABB(state.board.leftTop, state.board.rightBottom),
-                PenteGameBoardUtil.leftDiagonalStartPointWithAABB(state.board.leftTop, state.board.rightBottom),
-                PenteGameBoardUtil.rightDiagonalStartPointWithAABB(state.board.leftTop, state.board.rightBottom)
-        );
+        final List<List<PenteGameCoordinate>> startPoints = PenteGameBoardUtil.startPointsBasedOnBoard(state.board);
 
         float maxScore1 = 0f;
         float maxScore2 = 0f;
         float maxScore3 = 0f;
-
-        // final int width = state.board.rightBottom.x - state.board.leftTop.x;
-        // final int height = state.board.rightBottom.y - state.board.leftTop.y;
-        // float factor = (Math.max(width, height) <= 5) ? (0.5f / Math.max(width, height)) : (2f / Math.max(width, height));
 
         for (int i = 0; i < PenteGameBoardUtil.NUM_OF_DIRECTIONS; i++) {
             final int[] directionMove = PenteGameBoardUtil.directions[i];
@@ -124,9 +115,7 @@ public class PenteGameHeurstics implements Heurstics<PenteGameState, PenteGamePl
             }
         }
 
-        return (maxScore1 + maxScore2 + maxScore3) / 3;
-
-        // return clamp(score, -1f, 1f);
+        return maxScore1 * 0.8f + maxScore2 * 0.15f + maxScore3 * 0.05f;
     }
 
     private static class ConsecutivePiecesRange {
@@ -161,29 +150,38 @@ public class PenteGameHeurstics implements Heurstics<PenteGameState, PenteGamePl
             int yDiff = dst.y - src.y;
             int xDiff = dst.x - src.x;
 
-            if (yDiff == 0) {
+            if (xDiff == 0 && yDiff == 0)
+                return 0;
+
+            if (yDiff == 0)
                 return xDiff / direction[1];
-            }
 
             return yDiff / direction[0];
         }
 
+        private static final float factor = (float) Math.pow(2, PenteGame.MAX_NUM_PIECES_IN_A_ROW - 1) + 1;
+
         public float calculateScore(final int[] moveDirection) {
-            final float score = (length == 1) ? 0f : (float)Math.pow(3, length);
+            final float score = (float) Math.pow(2, length) / factor;
 
             if (prevOpponentPiece != null || nextOpponentPiece != null) {
                 int distFromPrevOpponent = (prevOpponentPiece != null) ?
-                        ConsecutivePiecesRange.calculateDist(prevOpponentPiece, start, moveDirection) :
-                        Integer.MAX_VALUE;
-                int distFromCurrOpponent = (nextOpponentPiece != null) ?
-                        ConsecutivePiecesRange.calculateDist(end, nextOpponentPiece, moveDirection) :
-                        Integer.MAX_VALUE;
-                assert distFromPrevOpponent >= 0 && distFromCurrOpponent >= 0;
+                        (ConsecutivePiecesRange.calculateDist(prevOpponentPiece, start, moveDirection) - 1) :
+                        PenteGameBoardUtil.distToBoardBoundary(start, PenteGameBoardUtil.negativeDirection(moveDirection));
+                int distFromNextOpponent = (nextOpponentPiece != null) ?
+                        (ConsecutivePiecesRange.calculateDist(end, nextOpponentPiece, moveDirection) - 1) :
+                        PenteGameBoardUtil.distToBoardBoundary(end, moveDirection);
 
-                if (distFromPrevOpponent == 1 && distFromCurrOpponent == 1) {
+                assert distFromPrevOpponent >= 0 && distFromNextOpponent >= 0;
+
+                final int maxPotentialConsecutivePiece = calculateDist(start, end, moveDirection) + 1 + distFromPrevOpponent + distFromNextOpponent;
+
+                if (distFromPrevOpponent == 0 && distFromNextOpponent == 0) {
                     return 0;
-                } else if (distFromPrevOpponent == 1 || distFromCurrOpponent == 1) {
-                    return score / 2;
+                } else if (maxPotentialConsecutivePiece < PenteGame.MAX_NUM_PIECES_IN_A_ROW) {
+                    return 0;
+                } else if (distFromPrevOpponent == 0 || distFromNextOpponent == 0) {
+                    return score / 1.5f;
                 }
             }
 
@@ -203,8 +201,7 @@ public class PenteGameHeurstics implements Heurstics<PenteGameState, PenteGamePl
         int currY = startCoordinate.y;
         int currX = startCoordinate.x;
 
-        while (currY >= board.leftTop.y && currX >= board.leftTop.x &&
-               currY <= board.rightBottom.y && currX <= board.rightBottom.x)
+        while (PenteGameBoardUtil.isWithInAABB(board.leftTop, board.rightBottom, currY, currX))
         {
             PenteGameCoordinate currCoordinate = PenteGameCoordinate.getCoordinate(currY, currX);
             PenteGamePiece piece = board.get(currY, currX);
@@ -238,6 +235,6 @@ public class PenteGameHeurstics implements Heurstics<PenteGameState, PenteGamePl
 
         return ranges
                 .stream()
-                .reduce(0f, (prevScore, range) -> range.calculateScore(moveDirection) + prevScore, Float::sum) / PenteGame.MAX_NUM_PIECES_IN_A_ROW;
+                .reduce(0f, (prevScore, range) -> range.calculateScore(moveDirection) + prevScore, Float::sum);
     }
 }

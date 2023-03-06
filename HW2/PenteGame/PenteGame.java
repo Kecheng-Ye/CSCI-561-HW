@@ -46,7 +46,7 @@ public class PenteGame extends BiPlayerGame<PenteGameState, PenteGameAction, Pen
                 .filter(penteGameAction -> {
                         final PenteGameCoordinate coordinate = penteGameAction.coordinate;
                         return state.board.get(coordinate) == null &&
-                               PenteGameBoardUtil.withInOfSquareRange(
+                               PenteGameBoardUtil.withinSquareRange(
                                        leftTop, rightBottom,
                                        coordinate, 3
                                );
@@ -57,9 +57,18 @@ public class PenteGame extends BiPlayerGame<PenteGameState, PenteGameAction, Pen
     private List<PenteGameAction> validActionForRound2(final PenteGameState state, final List<PenteGameAction> allActions) {
         assert state.round == 2;
 
-        // find the first white piece
+        // find the first white piece, since at round 2, there is only 2 pieces
+        // so the white piece must occur on one of the four corners
+        final PenteGameCoordinate leftTop = state.board.leftTop;
+        final PenteGameCoordinate rightBottom = state.board.rightBottom;
+        final PenteGameCoordinate leftBottom = PenteGameCoordinate.getCoordinate(rightBottom.y, leftTop.x);
+        final PenteGameCoordinate rightTop = PenteGameCoordinate.getCoordinate(leftTop.y, rightBottom.x);
+
         final PenteGameCoordinate firstWhitePieceCoordinate =
-                state.board.get(state.board.leftTop) == PenteGamePiece.WHITE ? state.board.leftTop : state.board.rightBottom;
+                state.board.get(leftTop) == PenteGamePiece.WHITE ? leftTop :
+                state.board.get(rightBottom) == PenteGamePiece.WHITE ?  rightBottom :
+                state.board.get(leftBottom) == PenteGamePiece.WHITE ? leftBottom : rightTop;
+        assert state.board.get(firstWhitePieceCoordinate) == PenteGamePiece.WHITE;
 
         return allActions
                 .stream()
@@ -67,8 +76,8 @@ public class PenteGame extends BiPlayerGame<PenteGameState, PenteGameAction, Pen
                     final PenteGameCoordinate coordinate = penteGameAction.coordinate;
 
                     return state.board.get(coordinate) == null &&
-                           PenteGameBoardUtil.outOfRange(firstWhitePieceCoordinate, coordinate, SECOND_WHITE_PIECE_OUT_RADIUS) &&
-                           PenteGameBoardUtil.withInOfSquareRange(
+                           PenteGameBoardUtil.outOfSquareRange(firstWhitePieceCoordinate, coordinate, SECOND_WHITE_PIECE_OUT_RADIUS) &&
+                           PenteGameBoardUtil.withinSquareRange(
                                    firstWhitePieceCoordinate, firstWhitePieceCoordinate,
                                    coordinate, 4
                            );

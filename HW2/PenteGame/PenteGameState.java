@@ -58,4 +58,20 @@ public class PenteGameState extends State {
     public int hashCode() {
         return Objects.hash(this.board.hashCode(), this.blackCaptures, this.whiteCaptures);
     }
+
+    public static PenteGameState reconstructFromBoardAndCaptures(
+            final PenteGameBoard board,
+            final int whiteCapturePieces, final int blackCapturePieces
+    ) {
+        int numOfEmptySpots = 0;
+
+        for (PenteGameCoordinateIterator it = new PenteGameCoordinateIterator(); it.hasNext(); ) {
+            PenteGameCoordinate coordinate = it.next();
+            numOfEmptySpots += (board.get(coordinate) == null ? 1 : 0);
+        }
+
+        int round = (PenteGame.BOARD_HEIGHT * PenteGame.BOARD_WIDTH) - numOfEmptySpots - whiteCapturePieces - blackCapturePieces;
+
+        return new PenteGameState(board, round, whiteCapturePieces / 2, blackCapturePieces / 2, numOfEmptySpots);
+    }
 }
