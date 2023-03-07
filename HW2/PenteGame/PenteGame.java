@@ -33,13 +33,13 @@ public class PenteGame extends BiPlayerGame<PenteGameState, PenteGameAction, Pen
         PenteGamePlayer nextPlayer = playerForNextMove(state);
         List<PenteGameAction> allActions = PenteGameAction.getAllAction(nextPlayer.playerType);
 
+        if (state.round == 0) {
+            return List.of(allActions.get(PenteGame.BOARD_HEIGHT * PenteGame.BOARD_WIDTH / 2));
+        }
+
         if (state.round == 2) {
             return validActionForRound2(state, allActions);
         }
-
-        final PenteGameCoordinate midPoint =  PenteGameCoordinate.getCoordinate(PenteGame.BOARD_HEIGHT / 2, PenteGame.BOARD_WIDTH / 2);
-        final PenteGameCoordinate leftTop = (state.round == 0) ? midPoint : state.board.leftTop;
-        final PenteGameCoordinate rightBottom = (state.round == 0) ? midPoint : state.board.rightBottom;
 
         return allActions
                 .stream()
@@ -47,7 +47,7 @@ public class PenteGame extends BiPlayerGame<PenteGameState, PenteGameAction, Pen
                         final PenteGameCoordinate coordinate = penteGameAction.coordinate;
                         return state.board.get(coordinate) == null &&
                                PenteGameBoardUtil.withinSquareRange(
-                                       leftTop, rightBottom,
+                                       state.board.leftTop, state.board.rightBottom,
                                        coordinate, 3
                                );
                 })

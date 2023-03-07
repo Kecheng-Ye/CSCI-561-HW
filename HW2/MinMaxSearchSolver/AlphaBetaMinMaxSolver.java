@@ -36,7 +36,7 @@ public class AlphaBetaMinMaxSolver<S extends State, A extends Action, P extends 
         }
 
         final BiPlayerGameTerminationStatus<S, A, P> terminationStatus = game.terminalTest(state);
-        if (terminationStatus.isFinished) return terminationStatus.utility(game.MAX_PLAYER);
+        if (terminationStatus.isFinished) return returnUtilityWithMemo(state, terminationStatus.utility(game.MAX_PLAYER));
 
         float minUtility = 2f;
 
@@ -46,14 +46,12 @@ public class AlphaBetaMinMaxSolver<S extends State, A extends Action, P extends 
 
             minUtility = Math.min(minUtility, curUtility);
             if (minUtility < alpha) {
-                visited.put(state, minUtility);
-                return minUtility;
+                return returnUtilityWithMemo(state, minUtility);
             }
             beta = Math.min(beta, minUtility);
         }
 
-        visited.put(state, minUtility);
-        return minUtility;
+        return returnUtilityWithMemo(state, minUtility);
     }
 
     float MaxValue(final BiPlayerGame<S, A, P> game, final S state, float alpha, final float beta) {
@@ -62,7 +60,7 @@ public class AlphaBetaMinMaxSolver<S extends State, A extends Action, P extends 
         }
 
         final BiPlayerGameTerminationStatus<S, A, P> terminationStatus = game.terminalTest(state);
-        if (terminationStatus.isFinished) return terminationStatus.utility(game.MAX_PLAYER);
+        if (terminationStatus.isFinished) return returnUtilityWithMemo(state, terminationStatus.utility(game.MAX_PLAYER));
 
         float maxUtility = -2f;
 
@@ -72,13 +70,11 @@ public class AlphaBetaMinMaxSolver<S extends State, A extends Action, P extends 
 
             maxUtility = Math.max(maxUtility, curUtility);
             if (maxUtility > beta) {
-                visited.put(state, maxUtility);
-                return maxUtility;
+                return returnUtilityWithMemo(state, maxUtility);
             }
             alpha = Math.max(alpha, maxUtility);
         }
 
-        visited.put(state, maxUtility);
-        return maxUtility;
+        return returnUtilityWithMemo(state, maxUtility);
     }
 }

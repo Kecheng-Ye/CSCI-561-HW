@@ -63,7 +63,7 @@ public class MinMaxSearchSolver<S extends State, A extends Action, P extends Pla
         }
 
         final BiPlayerGameTerminationStatus<S, A, P> terminationStatus = game.terminalTest(state);
-        if (terminationStatus.isFinished) return terminationStatus.utility(game.MAX_PLAYER);
+        if (terminationStatus.isFinished) return returnUtilityWithMemo(state, terminationStatus.utility(game.MAX_PLAYER));
 
         float minUtility = 2f;
 
@@ -74,8 +74,7 @@ public class MinMaxSearchSolver<S extends State, A extends Action, P extends Pla
             minUtility = Math.min(minUtility, curUtility);
         }
 
-        visited.put(state, minUtility);
-        return minUtility;
+        return returnUtilityWithMemo(state, minUtility);
     }
 
     float MaxValue(final BiPlayerGame<S, A, P> game, final S state) {
@@ -84,7 +83,7 @@ public class MinMaxSearchSolver<S extends State, A extends Action, P extends Pla
         }
 
         final BiPlayerGameTerminationStatus<S, A, P> terminationStatus = game.terminalTest(state);
-        if (terminationStatus.isFinished) return terminationStatus.utility(game.MAX_PLAYER);
+        if (terminationStatus.isFinished) return returnUtilityWithMemo(state, terminationStatus.utility(game.MAX_PLAYER));
 
         float maxUtility = -2f;
 
@@ -95,8 +94,7 @@ public class MinMaxSearchSolver<S extends State, A extends Action, P extends Pla
             maxUtility = Math.max(maxUtility, curUtility);
         }
 
-        visited.put(state, maxUtility);
-        return maxUtility;
+        return returnUtilityWithMemo(state, maxUtility);
     }
 
     public MinMaxDecisionResult MinMaxDecisionMultiThread(final BiPlayerGame<S, A, P> game, final S state, int numOfThread) {
@@ -139,5 +137,10 @@ public class MinMaxSearchSolver<S extends State, A extends Action, P extends Pla
 
     protected boolean isUtilityValid(float utility) {
         return ((utility >= -1f) && (utility <= 1f));
+    }
+
+    float returnUtilityWithMemo(final S state, final float utility) {
+        visited.put(state, utility);
+        return utility;
     }
 }

@@ -7,7 +7,7 @@ import MinMaxSearchSolver.*;
 
 public class selfPlay {
     public static void main(String[] args) {
-        final PenteGamePlayer AI = PenteGamePlayer.BLACK_PLAYER;
+        final PenteGamePlayer AI = PenteGamePlayer.WHITE_PLAYER;
         final PenteGamePlayer SELF = PenteGamePlayer.getOpponent(AI);
         PenteGame game = new PenteGame(AI);
         PenteGameState temp = game.initialState();

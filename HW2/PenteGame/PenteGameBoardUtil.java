@@ -283,7 +283,7 @@ public class PenteGameBoardUtil {
         StringBuilder builder = new StringBuilder();
         builder.append("    ");
         for (int j = 0; j < PenteGame.BOARD_WIDTH; j++) {
-            builder.append(String.format("%c ", (char)('A' + j)));
+            builder.append(String.format("%c ", PenteGameCoordinate.rowNumToAlpha(j)));
         }
         builder.append("\n");
 

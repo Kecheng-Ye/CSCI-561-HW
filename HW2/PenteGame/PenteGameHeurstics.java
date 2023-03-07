@@ -18,7 +18,7 @@ public class PenteGameHeurstics implements Heurstics<PenteGameState, PenteGamePl
         final float connectedComponentScore = connectedComponentScore(state, self) - connectedComponentScore(state, opponent);
         final float consecutivePieceScore = consecutivePieceScore(state, self) - consecutivePieceScore(state, opponent);
 
-        final float score = captureScore * 0.25f + connectedComponentScore * 0.05f + consecutivePieceScore * 0.7f;
+        final float score = captureScore * 0.35f + connectedComponentScore * 0.05f + consecutivePieceScore * 0.6f;
         return clamp(score, -1f, 1f);
     }
 
@@ -181,7 +181,7 @@ public class PenteGameHeurstics implements Heurstics<PenteGameState, PenteGamePl
                 } else if (maxPotentialConsecutivePiece < PenteGame.MAX_NUM_PIECES_IN_A_ROW) {
                     return 0;
                 } else if (distFromPrevOpponent == 0 || distFromNextOpponent == 0) {
-                    return score / 1.5f;
+                    return score / 2f;
                 }
             }
 
@@ -213,7 +213,7 @@ public class PenteGameHeurstics implements Heurstics<PenteGameState, PenteGamePl
                     if (!ranges.isEmpty()) {
                         final ConsecutivePiecesRange lastRange = ranges.get(ranges.size() - 1);
                         if (lastRange.nextOpponentPiece == null)
-                            lastRange.nextOpponentPiece =  currCoordinate;
+                            lastRange.nextOpponentPiece = currCoordinate;
                     }
                 } else {
                     if (ranges.isEmpty()) {

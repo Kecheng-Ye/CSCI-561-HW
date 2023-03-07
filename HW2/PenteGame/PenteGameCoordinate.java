@@ -17,9 +17,14 @@ public class PenteGameCoordinate {
         this.y = y;
     }
 
+    public static char rowNumToAlpha(final int x) {
+        return ((char)('A' + x) > 'H' ? (char)('A' + x + 1) : (char)('A' + x));
+    }
+
     @Override
     public String toString() {
-        return String.format("%d%c", (PenteGame.BOARD_HEIGHT - y), (char)('A' + x));
+        return String.format("%d%c", (PenteGame.BOARD_HEIGHT - y),
+                rowNumToAlpha(x));
     }
 
     public static final List<PenteGameCoordinate> allValidCoordinate = new ArrayList<>() {{
@@ -48,6 +53,7 @@ public class PenteGameCoordinate {
         if (matcher.find()) {
             int y = PenteGame.BOARD_HEIGHT - Integer.parseInt(matcher.group(1));
             int x = matcher.group(2).charAt(0) - 'A';
+            if (x > ('H' - 'A')) x--;
             return getCoordinate(y, x);
         } else {
             throw new RuntimeException();
