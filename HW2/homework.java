@@ -13,7 +13,7 @@ public class homework {
 
         final PenteGameHeurstics heurstics = new PenteGameHeurstics();
         final MinMaxSearchSolver<PenteGameState, PenteGameAction, PenteGamePlayer> solver =
-                new AlphaBetaWithHeursticsMinMax<PenteGameState, PenteGameAction, PenteGamePlayer>(heurstics, 3);
+                new AlphaBetaWithHeursticsMinMax<PenteGameState, PenteGameAction, PenteGamePlayer>(heurstics, 2);
 
         final PenteGameAction action = solver.MinMaxDecision(game, state).action;
         action.dumpIntoFile(OUTPUT_PATH);
