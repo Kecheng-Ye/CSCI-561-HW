@@ -15,11 +15,11 @@ public enum PenteGamePiece {
     public static PenteGamePiece parseFromBoardStr(final char character) {
         if (character == '.') {
             return null;
-        } else if (character == 'w') {
+        } else if (character == 'W') {
             return WHITE;
-        } else if (character == 'b') {
+        } else if (character == 'B') {
             return BLACK;
-        }
+        };
 
         throw new IllegalArgumentException("Wrong Input");
     }
