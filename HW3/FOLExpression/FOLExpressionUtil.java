@@ -1,23 +1,22 @@
 package FOLExpression;
 
-interface functionInteferce {
+interface printFunctionInterface {
     void print();
 }
 
 public class FOLExpressionUtil {
-    public static int numOfIndent;
-    // public static StringBuilder stringBuilder;
+    private static int numOfIndent;
 
     private static void printIndent(int numOfIndent) {
         System.out.print("\t".repeat(numOfIndent));
     }
 
-    private static void printExpressionNodeTemplate(FOLExpressionNodeType type, functionInteferce ...reprs) {
+    private static void printExpressionNodeTemplate(FOLExpressionNodeType type, printFunctionInterface ...reprs) {
         printIndent(numOfIndent++);
         System.out.println("{");
         printIndent(numOfIndent);
         System.out.printf("type: %s%n", type);
-        for (final functionInteferce repr : reprs) {
+        for (final printFunctionInterface repr : reprs) {
             printIndent(numOfIndent);
             repr.print();
         }
@@ -104,5 +103,137 @@ public class FOLExpressionUtil {
     public static void printExpression(FOLExpressionNode expressionNode) {
         numOfIndent = 0;
         printExpressionHelper(expressionNode);
+    }
+
+    public static FOLExpressionNode convertToCNF(final FOLExpressionNode expressionNode) {
+        FOLExpressionNode result;
+        result = changeInferToOR(expressionNode);
+        result = distributeNOT(result, false);
+        result = distributeANDOverOR(result);
+        return result;
+    }
+
+    private static FOLExpressionNode changeInferToOR(final FOLExpressionNode expressionNode) {
+        switch (expressionNode.type) {
+            case PREDICATE: {
+                return expressionNode;
+            }
+
+            case NEGATED_SENTENCE: {
+                NegatedSentenceNode node = (NegatedSentenceNode) expressionNode;
+                return new NegatedSentenceNode(changeInferToOR(node.body));
+            }
+
+            case BINARY_SENTENCE: {
+                BinaryExpressionNode node = (BinaryExpressionNode) expressionNode;
+                if (node.operator == FOLBinaryOperator.INFER) {
+                    return new BinaryExpressionNode(
+                            new NegatedSentenceNode(changeInferToOR(node.left)),
+                            changeInferToOR(node.right),
+                            FOLBinaryOperator.OR
+                    );
+                }
+                return new BinaryExpressionNode(changeInferToOR(node.left), changeInferToOR(node.right), node.operator);
+            }
+
+            default: {
+                throw new RuntimeException("Cannot handle this type of FOL node type");
+            }
+        }
+    }
+
+    private static FOLExpressionNode distributeNOT(final FOLExpressionNode expressionNode, final boolean isNegated) {
+        switch (expressionNode.type) {
+            case PREDICATE: {
+                if (isNegated) {
+                    return new NegatedSentenceNode(expressionNode);
+                }
+                return expressionNode;
+            }
+
+            case NEGATED_SENTENCE: {
+                NegatedSentenceNode node = (NegatedSentenceNode) expressionNode;
+                if (isNegated) {
+                    return distributeNOT(node.body, false);
+                }
+                return distributeNOT(node.body, true);
+            }
+
+            case BINARY_SENTENCE: {
+                BinaryExpressionNode node = (BinaryExpressionNode) expressionNode;
+                assert node.operator == FOLBinaryOperator.AND || node.operator == FOLBinaryOperator.OR;
+
+                final FOLBinaryOperator negatedOperator = node.operator == FOLBinaryOperator.AND ? FOLBinaryOperator.OR : FOLBinaryOperator.AND;
+
+                return new BinaryExpressionNode(distributeNOT(node.left, isNegated), distributeNOT(node.right, isNegated), isNegated ? negatedOperator : node.operator);
+            }
+
+            default: {
+                throw new RuntimeException("Cannot handle this type of FOL node type");
+            }
+        }
+    }
+
+    private static FOLExpressionNode distributeANDOverOR(final FOLExpressionNode expressionNode) {
+        switch (expressionNode.type) {
+            case PREDICATE: {
+                return expressionNode;
+            }
+
+            case NEGATED_SENTENCE: {
+                NegatedSentenceNode node = (NegatedSentenceNode) expressionNode;
+                assert node.body.type == FOLExpressionNodeType.PREDICATE;
+                return new NegatedSentenceNode(distributeANDOverOR(node.body));
+            }
+
+            case BINARY_SENTENCE: {
+                BinaryExpressionNode node = (BinaryExpressionNode) expressionNode;
+                assert node.operator == FOLBinaryOperator.AND || node.operator == FOLBinaryOperator.OR;
+
+                final FOLExpressionNode left = node.left;
+                final FOLExpressionNode right = node.right;
+
+                if ((left.type == FOLExpressionNodeType.PREDICATE || left.type == FOLExpressionNodeType.NEGATED_SENTENCE) &&
+                    (right.type == FOLExpressionNodeType.PREDICATE || right.type == FOLExpressionNodeType.NEGATED_SENTENCE)
+                ) {
+                    // return new BinaryExpressionNode(distributeANDOverOR(left), distributeANDOverOR(right), node.operator);
+                    return expressionNode;
+                }
+
+                if (right.type == FOLExpressionNodeType.PREDICATE) {
+                    // always distribute left over right
+                    return distributeANDOverOR(new BinaryExpressionNode(right, left, node.operator));
+                }
+
+                if (right.type == FOLExpressionNodeType.NEGATED_SENTENCE) {
+                    NegatedSentenceNode rightTemp = (NegatedSentenceNode) right;
+                    assert rightTemp.body.type == FOLExpressionNodeType.PREDICATE;
+                    // always distribute left over right
+                    return distributeANDOverOR(new BinaryExpressionNode(right, left, node.operator));
+                }
+
+                assert right.type == FOLExpressionNodeType.BINARY_SENTENCE;
+                BinaryExpressionNode rightTemp = (BinaryExpressionNode) right;
+
+                // A V (B ^ C) = (A V B) ^ (A V C)
+                if (node.operator == FOLBinaryOperator.OR && rightTemp.operator == FOLBinaryOperator.AND) {
+                    return new BinaryExpressionNode(
+                            distributeANDOverOR(new BinaryExpressionNode(left, rightTemp.left, FOLBinaryOperator.OR)),
+                            distributeANDOverOR(new BinaryExpressionNode(left, rightTemp.right, FOLBinaryOperator.OR)),
+                            FOLBinaryOperator.AND
+                    );
+                }
+
+                return new BinaryExpressionNode(
+                        distributeANDOverOR(left),
+                        distributeANDOverOR(right),
+                        node.operator
+                );
+            }
+
+            default: {
+                throw new RuntimeException("Cannot handle this type of FOL node type");
+            }
+        }
     }
 }

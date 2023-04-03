@@ -15,7 +15,6 @@ class FOLParsingException extends RuntimeException {
 }
 
 public class FOLParser {
-    private String string;
     private final FOLTokenizer tokenizer;
     private FOLToken lookAheadToken;
 
@@ -26,7 +25,6 @@ public class FOLParser {
 
     public FOLExpressionNode parse(final String FOLSentence) {
         // init
-        this.string = FOLSentence;
         this.tokenizer.init(FOLSentence);
         // get the first token for predictive parsing
         this.lookAheadToken = this.tokenizer.getNextToken();
