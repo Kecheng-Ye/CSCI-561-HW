@@ -120,7 +120,7 @@ public class PenteGameBoard {
             assert oneRowStr.length() == PenteGame.BOARD_WIDTH;
 
             for (int j = 0; j < PenteGame.BOARD_WIDTH; j++) {
-                result.put(i, j, PenteGamePiece.parseFromBoardStr(oneRowStr.charAt(0)));
+                result.put(i, j, PenteGamePiece.parseFromBoardStr(oneRowStr.charAt(j)));
             }
         }
 
