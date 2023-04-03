@@ -12,7 +12,7 @@ class FOLParserTest {
 
     @org.junit.jupiter.api.Test
     void parseConstant() {
-        final String input = "(~P(x) | ((~P(y) | P(g)) & (Q(x,k) & ~P(k))))";
+        final String input = "~( P(A) | ( P(A) => K(A) ))";
         final FOLExpressionNode node = parser.parse(input);
         // final FOLExpressionNode expected = new BinaryExpressionNode(
         //         new BinaryExpressionNode(

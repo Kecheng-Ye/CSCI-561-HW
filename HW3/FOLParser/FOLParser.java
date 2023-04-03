@@ -60,8 +60,8 @@ public class FOLParser {
     }
 
     /*
-     * AND_ORSentence -> NOT primarySentence
-     *                 | primarySentence
+     * AND_ORSentence -> NegatedSentence
+     *                 | NegatedSentence AND/OR NegatedSentence
      */
     private FOLExpressionNode AND_ORSentence() {
         FOLExpressionNode left = NegatedSentence();
@@ -80,13 +80,13 @@ public class FOLParser {
     }
 
     /*
-     * NegatedSentence -> NOT PrimarySentence
+     * NegatedSentence -> NOT NegatedSentence
      *                  | PrimarySentence
      */
     private FOLExpressionNode NegatedSentence() {
         if (this.lookAheadToken.type == FOLTokenType.NOT) {
             eatToken(FOLTokenType.NOT);
-            return new NegatedSentenceNode(PrimarySentence());
+            return new NegatedSentenceNode(NegatedSentence());
         }
 
         return PrimarySentence();
