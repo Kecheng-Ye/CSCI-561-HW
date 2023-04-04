@@ -32,6 +32,6 @@ public class PredicateNode extends FOLExpressionNode{
 
     @Override
     public int hashCode() {
-        return Objects.hash(arguments);
+        return Objects.hash(predicateName);
     }
 }

@@ -1,6 +1,8 @@
 package FOLExpression;
 
 
+import java.util.Objects;
+
 public class BinaryExpressionNode extends FOLExpressionNode{
     public final FOLExpressionNode left;
     public final FOLExpressionNode right;
@@ -29,5 +31,10 @@ public class BinaryExpressionNode extends FOLExpressionNode{
         if (!(o instanceof BinaryExpressionNode)) return false;
         BinaryExpressionNode that = (BinaryExpressionNode) o;
         return left.equals(that.left) && right.equals(that.right) && operator == that.operator;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(left, right, operator);
     }
 }

@@ -145,18 +145,12 @@ public class FOLExpressionUtil {
     private static FOLExpressionNode distributeNOT(final FOLExpressionNode expressionNode, final boolean isNegated) {
         switch (expressionNode.type) {
             case PREDICATE: {
-                if (isNegated) {
-                    return new NegatedSentenceNode(expressionNode);
-                }
-                return expressionNode;
+                return isNegated ? new NegatedSentenceNode(expressionNode) : expressionNode;
             }
 
             case NEGATED_SENTENCE: {
                 NegatedSentenceNode node = (NegatedSentenceNode) expressionNode;
-                if (isNegated) {
-                    return distributeNOT(node.body, false);
-                }
-                return distributeNOT(node.body, true);
+                return distributeNOT(node.body, !isNegated);
             }
 
             case BINARY_SENTENCE: {
@@ -165,7 +159,11 @@ public class FOLExpressionUtil {
 
                 final FOLBinaryOperator negatedOperator = node.operator == FOLBinaryOperator.AND ? FOLBinaryOperator.OR : FOLBinaryOperator.AND;
 
-                return new BinaryExpressionNode(distributeNOT(node.left, isNegated), distributeNOT(node.right, isNegated), isNegated ? negatedOperator : node.operator);
+                return new BinaryExpressionNode(
+                        distributeNOT(node.left, isNegated),
+                        distributeNOT(node.right, isNegated),
+                        isNegated ? negatedOperator : node.operator
+                );
             }
 
             default: {

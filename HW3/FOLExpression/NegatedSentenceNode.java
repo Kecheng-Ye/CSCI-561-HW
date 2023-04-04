@@ -1,5 +1,7 @@
 package FOLExpression;
 
+import java.util.Objects;
+
 public class NegatedSentenceNode extends FOLExpressionNode{
     public final FOLExpressionNode body;
 
@@ -22,5 +24,10 @@ public class NegatedSentenceNode extends FOLExpressionNode{
         if (!(o instanceof NegatedSentenceNode)) return false;
         NegatedSentenceNode that = (NegatedSentenceNode) o;
         return body.equals(that.body);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.type, body);
     }
 }
