@@ -3,6 +3,8 @@ package KnowledgeBase;
 import FOLExpression.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 // Basically a trie
 // Every ArgumentNode is a fast look-up table for possible values of an argument in a predicate
@@ -16,7 +18,7 @@ class ArgumentQueryMap {
         public ArgumentNode() {
             this.children = new HashMap<>();
             this.isEnd = false;
-            this.sentenceIds = new ArrayList<>();
+            this.sentenceIds = null;
         }
     }
 
@@ -43,6 +45,9 @@ class ArgumentQueryMap {
         }
 
         temp.isEnd = true;
+        if (temp.sentenceIds == null) {
+            temp.sentenceIds = new ArrayList<>();
+        }
         temp.sentenceIds.add(sentenceId);
     }
 
@@ -95,6 +100,8 @@ public class KnowledgeBaseStorage {
     private final Map<ConstantNode, Integer> constantIdMap;
     private int constantIdCount;
 
+    public static final int SENTENCE_ALREADY_EXIST = -1;
+
     public KnowledgeBaseStorage() {
         this.sentencesArr = new ArrayList<>();
         this.constantIdMap = new HashMap<>();
@@ -104,21 +111,22 @@ public class KnowledgeBaseStorage {
 
     public KnowledgeBaseStorage(List<FOLExpressionNode> sentences) {
         this();
-        sentences.forEach(this::addSentence);
+        // sentences.forEach(this::addCNFSentence);
     }
 
-    public void addSentence(final FOLExpressionNode expressionNode) {
+    // it is assumed that the input sentence should be in CNF form
+    public int addCNFSentence(final FOLExpressionNode expressionNode) {
+        int sentenceId = sentencesArr.size();
+
         // first convert each sentence to CNF
-        // then split the CNF by the conjunction symbol
-        // e.g A & B  => [A, B]
-        final List<FOLExpressionNode> splitCNF = KnowledgeBaseUtil.sentencePreprocess(expressionNode);
+        if (isSentenceDuplicate(expressionNode)) return SENTENCE_ALREADY_EXIST;
 
-        // for each sentence that is int the form or (A | ~B | C | ...) form
-        // add them into the KB
-        splitCNF.forEach(this::addSentenceHelper);
+        addSentenceIntoIndexing(expressionNode, sentenceId);
+        sentencesArr.add(expressionNode);
+        return sentenceId;
     }
 
-    private void addSentenceHelper(final FOLExpressionNode expressionNode) {
+    private void addSentenceIntoIndexing(final FOLExpressionNode expressionNode, final int sentenceId) {
         // for each sentence that is int the form or (A | ~B | C | ...) form
         // split them into list of single predicates
         // e.g (A | ~B | C) => [A, ~B, C]
@@ -140,17 +148,15 @@ public class KnowledgeBaseStorage {
             }
 
             queryMap.addSentence(
-                    sentencesArr.size(),
+                    sentenceId,
                     arguments,
                     constantIdMap
             );
         }
-
-        sentencesArr.add(expressionNode);
     }
 
-    public List<FOLExpressionNode> fetchSentence(final FOLExpressionNode expressionNode) {
-        final List<FOLExpressionNode> result = new ArrayList<>();
+    public List<Integer> fetchSentenceIdBySinglePredicate(final FOLExpressionNode expressionNode) {
+        final List<Integer> result = new ArrayList<>();
         // the input FOL should only a single predicate or a single negated predicate
         final List<TermNode> arguments = KnowledgeBaseUtil.getArgumentsFromSinglePredicate(expressionNode);
         final String predicateName = KnowledgeBaseUtil.getSinglePredicateName(expressionNode);
@@ -161,16 +167,32 @@ public class KnowledgeBaseStorage {
 
         // get the corresponding ArgumentQueryMap based on the predicate name
         final Set<Integer> targetSentenceIds = predicateArgsQueryMap.get(predicateName).matchArgument(arguments, constantIdMap);
-        if (targetSentenceIds.isEmpty()) {
-            return result;
-        }
-
-        targetSentenceIds.forEach((sentenceId) -> {
-            assert sentenceId < sentencesArr.size();
-            result.add(sentencesArr.get(sentenceId));
-        });
+        result.addAll(targetSentenceIds);
 
         return result;
+    }
+
+    public List<Integer> fetchSentenceIdByComplexSentence(final FOLExpressionNode expressionNode) {
+        final Set<Integer> result = IntStream.range(0, sentencesArr.size()).boxed().collect(Collectors.toSet());
+        final List<FOLExpressionNode> singlePredicates = KnowledgeBaseUtil.splitSentenceToSinglePredicate(expressionNode);
+        singlePredicates.forEach(predicate -> result.retainAll(fetchSentenceIdBySinglePredicate(predicate)));
+
+        return new ArrayList<>(result);
+    }
+
+    private boolean isSentenceDuplicate(final FOLExpressionNode expressionNode) {
+        final List<Integer> duplicateCandidates = fetchSentenceIdByComplexSentence(expressionNode);
+
+        for (final int duplicateCandidateId : duplicateCandidates) {
+            if (sentencesArr.get(duplicateCandidateId).equals(expressionNode)) return true;
+        }
+
+        return false;
+    }
+
+    public FOLExpressionNode fetchSentenceById(final int sentenceId) {
+        assert sentenceId >=0 && sentenceId < sentencesArr.size();
+        return this.sentencesArr.get(sentenceId);
     }
 
     private void updateConstantMap(final FOLExpressionNode expressionNode) {
@@ -184,6 +206,10 @@ public class KnowledgeBaseStorage {
                 }
             }
         }
+    }
+
+    public void addAllSentenceIdIntoContainer(final Collection<Integer> collection) {
+        collection.addAll(IntStream.range(0, sentencesArr.size()).boxed().collect(Collectors.toList()));
     }
 
 }

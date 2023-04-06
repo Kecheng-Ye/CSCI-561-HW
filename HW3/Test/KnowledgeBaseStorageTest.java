@@ -37,6 +37,6 @@ class KnowledgeBaseStorageTest {
     @Test
     void fetchSentence() {
         final KnowledgeBaseStorage storage = new KnowledgeBaseStorage(sentences);
-        storage.fetchSentence(parser.parse("Ate(Cat)")).forEach(FOLExpressionUtil::printExpression);
+        // storage.fetchSentence(parser.parse("GetCheck(Cat)")).forEach(FOLExpressionUtil::printExpression);
     }
 }

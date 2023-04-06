@@ -89,4 +89,46 @@ public class KnowledgeBaseUtil {
             return "~" + ((PredicateNode)((NegatedSentenceNode)expressionNode).body).predicateName;
         }
     }
+
+    public static String getSinglePredicateName(final FOLExpressionNode expressionNode, boolean isPure) {
+        if (!isPure) {
+            return getSinglePredicateName(expressionNode);
+        }
+
+        assert isSinglePredicate(expressionNode);
+        if (expressionNode.type == FOLExpressionNodeType.PREDICATE) {
+            return ((PredicateNode)expressionNode).predicateName;
+        } else {
+            return ((PredicateNode)((NegatedSentenceNode)expressionNode).body).predicateName;
+        }
+    }
+
+    public static List<TermNode> getSinglePredicateArgs(final FOLExpressionNode expressionNode) {
+        assert isSinglePredicate(expressionNode);
+        if (expressionNode.type == FOLExpressionNodeType.PREDICATE) {
+            return ((PredicateNode)expressionNode).arguments;
+        } else {
+            return ((PredicateNode)((NegatedSentenceNode)expressionNode).body).arguments;
+        }
+    }
+
+    public static FOLExpressionNode concatTwoNodeWithOr(final FOLExpressionNode left, final  FOLExpressionNode right) {
+        assert isSinglePredicate(right);
+
+        if (left == null) {
+            return right;
+        } else {
+            return new BinaryExpressionNode(left, right, FOLBinaryOperator.OR);
+        }
+    }
+
+    public static FOLExpressionNode negateSinglePredicate(final FOLExpressionNode expressionNode) {
+        assert isSinglePredicate(expressionNode);
+
+        if (expressionNode.type == FOLExpressionNodeType.PREDICATE) {
+            return new NegatedSentenceNode(expressionNode);
+        } else {
+            return ((NegatedSentenceNode)expressionNode).body;
+        }
+    }
 }

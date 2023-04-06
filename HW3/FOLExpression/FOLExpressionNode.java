@@ -7,6 +7,10 @@ public abstract class FOLExpressionNode {
         this.type = type;
     }
 
+    public NegatedSentenceNode negate() {
+        return new NegatedSentenceNode(this);
+    }
+
     @Override
     public abstract String toString();
 
