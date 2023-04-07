@@ -1,5 +1,7 @@
 package FOLExpression;
 
+import KnowledgeBase.KnowledgeBaseUtil;
+
 interface printFunctionInterface {
     void print();
 }
@@ -11,7 +13,7 @@ public class FOLExpressionUtil {
         System.out.print("\t".repeat(numOfIndent));
     }
 
-    private static void printExpressionNodeTemplate(FOLExpressionNodeType type, printFunctionInterface ...reprs) {
+    private static void printExpressionNodeTemplate(FOLExpressionNodeType type, printFunctionInterface... reprs) {
         printIndent(numOfIndent++);
         System.out.println("{");
         printIndent(numOfIndent);
@@ -28,13 +30,15 @@ public class FOLExpressionUtil {
         switch (expressionNode.type) {
             case CONSTANT: {
                 final ConstantNode node = (ConstantNode) expressionNode;
-                printExpressionNodeTemplate(FOLExpressionNodeType.CONSTANT, () -> System.out.printf("Name: %s%n", node.constantName));
+                printExpressionNodeTemplate(FOLExpressionNodeType.CONSTANT,
+                        () -> System.out.printf("Name: %s%n", node.constantName));
                 break;
             }
 
             case VARIABLE: {
                 final VariableNode node = (VariableNode) expressionNode;
-                printExpressionNodeTemplate(FOLExpressionNodeType.VARIABLE, () -> System.out.printf("Name: %s%n", node.varName));
+                printExpressionNodeTemplate(FOLExpressionNodeType.VARIABLE,
+                        () -> System.out.printf("Name: %s%n", node.varName));
                 break;
             }
 
@@ -93,10 +97,6 @@ public class FOLExpressionUtil {
                 );
                 break;
             }
-
-            default: {
-                break;
-            }
         }
     }
 
@@ -137,7 +137,7 @@ public class FOLExpressionUtil {
             }
 
             default: {
-                throw new RuntimeException("Cannot handle this type of FOL node type");
+                throw new RuntimeException(String.format("Cannot handle this type of FOL node type %s", expressionNode.type));
             }
         }
     }
@@ -157,7 +157,8 @@ public class FOLExpressionUtil {
                 BinaryExpressionNode node = (BinaryExpressionNode) expressionNode;
                 assert node.operator == FOLBinaryOperator.AND || node.operator == FOLBinaryOperator.OR;
 
-                final FOLBinaryOperator negatedOperator = node.operator == FOLBinaryOperator.AND ? FOLBinaryOperator.OR : FOLBinaryOperator.AND;
+                final FOLBinaryOperator negatedOperator = node.operator == FOLBinaryOperator.AND ? FOLBinaryOperator.OR
+                        : FOLBinaryOperator.AND;
 
                 return new BinaryExpressionNode(
                         distributeNOT(node.left, isNegated),
@@ -167,7 +168,7 @@ public class FOLExpressionUtil {
             }
 
             default: {
-                throw new RuntimeException("Cannot handle this type of FOL node type");
+                throw new RuntimeException(String.format("Cannot handle this type of FOL node type %s", expressionNode.type));
             }
         }
     }
@@ -191,21 +192,11 @@ public class FOLExpressionUtil {
                 final FOLExpressionNode left = node.left;
                 final FOLExpressionNode right = node.right;
 
-                if ((left.type == FOLExpressionNodeType.PREDICATE || left.type == FOLExpressionNodeType.NEGATED_SENTENCE) &&
-                    (right.type == FOLExpressionNodeType.PREDICATE || right.type == FOLExpressionNodeType.NEGATED_SENTENCE)
-                ) {
-                    // return new BinaryExpressionNode(distributeANDOverOR(left), distributeANDOverOR(right), node.operator);
+                if (KnowledgeBaseUtil.isSinglePredicate(left) && KnowledgeBaseUtil.isSinglePredicate(right)) {
                     return expressionNode;
                 }
 
-                if (right.type == FOLExpressionNodeType.PREDICATE) {
-                    // always distribute left over right
-                    return distributeANDOverOR(new BinaryExpressionNode(right, left, node.operator));
-                }
-
-                if (right.type == FOLExpressionNodeType.NEGATED_SENTENCE) {
-                    NegatedSentenceNode rightTemp = (NegatedSentenceNode) right;
-                    assert rightTemp.body.type == FOLExpressionNodeType.PREDICATE;
+                if (KnowledgeBaseUtil.isSinglePredicate(right)) {
                     // always distribute left over right
                     return distributeANDOverOR(new BinaryExpressionNode(right, left, node.operator));
                 }
@@ -230,7 +221,7 @@ public class FOLExpressionUtil {
             }
 
             default: {
-                throw new RuntimeException("Cannot handle this type of FOL node type");
+                throw new RuntimeException(String.format("Cannot handle this type of FOL node type %s", expressionNode.type));
             }
         }
     }

@@ -6,11 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class KnowledgeBaseUtil {
-    public static List<FOLExpressionNode> sentencePreprocess(final FOLExpressionNode expressionNode) {
-        final FOLExpressionNode sentenceInCNF = FOLExpressionUtil.convertToCNF(expressionNode);
-        return splitCNF(sentenceInCNF);
-    }
-
     public static List<FOLExpressionNode> splitCNF(final FOLExpressionNode expressionNode) {
         List<FOLExpressionNode> result = new ArrayList<>();
         splitCNFHelper(expressionNode, result);
@@ -35,6 +30,10 @@ public class KnowledgeBaseUtil {
 
                 splitCNFHelper(node.left, result);
                 splitCNFHelper(node.right, result);
+            }
+
+            default: {
+                throw new RuntimeException(String.format("Cannot handle this type of FOL node type %s", expressionNode.type));
             }
         }
     }
@@ -62,6 +61,10 @@ public class KnowledgeBaseUtil {
                 BinaryExpressionNode node = (BinaryExpressionNode) expressionNode;
                 splitSentenceToSinglePredicateHelper(node.left, result);
                 splitSentenceToSinglePredicateHelper(node.right, result);
+            }
+
+            default: {
+                throw new RuntimeException(String.format("Cannot handle this type of FOL node type %s", expressionNode.type));
             }
         }
     }

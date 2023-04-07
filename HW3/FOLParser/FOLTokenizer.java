@@ -2,7 +2,6 @@ package FOLParser;
 
 import FOLParser.FOLToken.FOLToken;
 import FOLParser.FOLToken.FOLTokenType;
-import FOLParser.FOLToken.SpecItem;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,17 +31,17 @@ public class FOLTokenizer {
 
         final String subInput = this.string.substring(this.cursor);
 
-        for (final SpecItem specItem : FOLTokenType.SPECS) {
-            final String tokenValue = match(specItem.regex, subInput);
+        for (final FOLTokenType folTokenType : FOLTokenType.values()) {
+            final String tokenValue = match(folTokenType.pattern, subInput);
 
             if (tokenValue == null) continue;
 
             // Skip all possible spaces and try to match next token
-            if (specItem.type == FOLTokenType.SPACE) {
+            if (folTokenType == FOLTokenType.SPACE) {
                 return getNextToken();
             }
 
-            return new FOLToken(specItem.type, tokenValue);
+            return new FOLToken(folTokenType, tokenValue);
         }
 
         throw new RuntimeException(String.format("Unexpected Token: %s", subInput));
