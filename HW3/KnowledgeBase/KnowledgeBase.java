@@ -15,6 +15,7 @@ public class KnowledgeBase {
     public void tell(final FOLExpressionNode expressionNode) {
         // first convert each sentence to CNF
         final FOLExpressionNode nodeInCNF = FOLExpressionUtil.convertToCNF(expressionNode);
+        // then split the conjunction of disjunctions into separate disjunction clauses
         final List<FOLExpressionNode> splitCNF = KnowledgeBaseUtil.splitCNF(nodeInCNF);
 
         splitCNF.forEach(this.storage::addCNFSentence);

@@ -77,34 +77,6 @@ class Substitution {
 
 public class KnowledgeBaseUnifier {
     public static Substitution unifyTwoPredicates(final FOLExpressionNode x, final FOLExpressionNode y) {
-        // final List<FOLExpressionNode> singlePredicatesX = KnowledgeBaseUtil.splitSentenceToSinglePredicate(x);
-        // final List<FOLExpressionNode> singlePredicatesY = KnowledgeBaseUtil.splitSentenceToSinglePredicate(y);
-        //
-        // int xIdx = 0;
-        // int yIdx = 0;
-        // for (final FOLExpressionNode predicateX : singlePredicatesX) {
-        //     yIdx = 0;
-        //     for (final FOLExpressionNode predicateY : singlePredicatesY) {
-        //         final String predicateXName = KnowledgeBaseUtil.getSinglePredicateName(predicateX, true);
-        //         final String predicateYName = KnowledgeBaseUtil.getSinglePredicateName(predicateY, true);
-        //
-        //         if (predicateXName.equals(predicateYName)) {
-        //             Map<TermNode, TermNode> assignment = new HashMap<>();
-        //             boolean isSuccess = unifyHelper(
-        //                     KnowledgeBaseUtil.getSinglePredicateArgs(predicateX),
-        //                     KnowledgeBaseUtil.getSinglePredicateArgs(predicateY),
-        //                     assignment
-        //             );
-        //
-        //             if (isSuccess) {
-        //                 return Substitution.success(assignment, xIdx, yIdx);
-        //             }
-        //         }
-        //         yIdx++;
-        //     }
-        //     xIdx++;
-        // }
-
         final String xPredName = KnowledgeBaseUtil.getSinglePredicateName(x);
         final List<TermNode> xPredArgs = KnowledgeBaseUtil.getSinglePredicateArgs(x);
 

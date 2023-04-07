@@ -1,12 +1,18 @@
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import IO.InputParser;
+import IO.OutputWritter;
+import KnowledgeBase.KnowledgeBase;
 
 public class homework {
     public static void main(String[] args) {
-        Pattern p = Pattern.compile("^[A-Z]\\w*");
-        Matcher m = p.matcher("Abcbcbc");
-        if (m.find()) {
-            System.out.println("true");
-        }
+        final String INPUT_FILE_PATH = "input.txt";
+        final String OUTPUT_FILE_PATH = "output.txt";
+
+
+        final KnowledgeBase KB = new KnowledgeBase();
+        final InputParser.ParserResult parserResult = InputParser.parseFromFile(INPUT_FILE_PATH);
+
+        assert parserResult != null;
+        parserResult.rules.forEach(KB::tell);
+        OutputWritter.writeSolutionsToFile(OUTPUT_FILE_PATH, KB.ask(parserResult.query));
     }
 }

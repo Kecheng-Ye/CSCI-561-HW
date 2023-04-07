@@ -100,8 +100,6 @@ public class KnowledgeBaseStorage {
     private final Map<ConstantNode, Integer> constantIdMap;
     private int constantIdCount;
 
-    public static final int SENTENCE_ALREADY_EXIST = -1;
-
     public KnowledgeBaseStorage() {
         this.sentencesArr = new ArrayList<>();
         this.constantIdMap = new HashMap<>();
@@ -111,19 +109,20 @@ public class KnowledgeBaseStorage {
 
     public KnowledgeBaseStorage(List<FOLExpressionNode> sentences) {
         this();
-        // sentences.forEach(this::addCNFSentence);
+        sentences.forEach(
+                sentence -> KnowledgeBaseUtil.splitCNF(FOLExpressionUtil.convertToCNF(sentence))
+                                             .forEach(this::addCNFSentence)
+        );
     }
 
     // it is assumed that the input sentence should be in CNF form
-    public int addCNFSentence(final FOLExpressionNode expressionNode) {
+    public void addCNFSentence(final FOLExpressionNode expressionNode) {
         int sentenceId = sentencesArr.size();
 
-        // first convert each sentence to CNF
-        if (isSentenceDuplicate(expressionNode)) return SENTENCE_ALREADY_EXIST;
+        if (isSentenceDuplicate(expressionNode)) return;
 
         addSentenceIntoIndexing(expressionNode, sentenceId);
         sentencesArr.add(expressionNode);
-        return sentenceId;
     }
 
     private void addSentenceIntoIndexing(final FOLExpressionNode expressionNode, final int sentenceId) {

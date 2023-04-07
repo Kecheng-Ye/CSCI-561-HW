@@ -35,8 +35,20 @@ class KnowledgeBaseStorageTest {
     }
 
     @Test
-    void fetchSentence() {
+    void fetchSentenceBySinglePredicate() {
         final KnowledgeBaseStorage storage = new KnowledgeBaseStorage(sentences);
-        // storage.fetchSentence(parser.parse("GetCheck(Cat)")).forEach(FOLExpressionUtil::printExpression);
+        storage.fetchSentenceIdBySinglePredicate(parser.parse("~HaveMoney(x)"))
+                .stream()
+                .map(storage::fetchSentenceById)
+                .forEach(FOLExpressionUtil::printExpression);
+    }
+
+    @Test
+    void fetchSentenceByComplexSentence() {
+        final KnowledgeBaseStorage storage = new KnowledgeBaseStorage(sentences);
+        storage.fetchSentenceIdByComplexSentence(parser.parse("~Seated(x) | ~Stocked(y)"))
+                .stream()
+                .map(storage::fetchSentenceById)
+                .forEach(FOLExpressionUtil::printExpression);
     }
 }
