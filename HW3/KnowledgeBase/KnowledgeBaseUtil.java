@@ -30,6 +30,7 @@ public class KnowledgeBaseUtil {
 
                 splitCNFHelper(node.left, result);
                 splitCNFHelper(node.right, result);
+                break;
             }
 
             default: {
@@ -61,6 +62,7 @@ public class KnowledgeBaseUtil {
                 BinaryExpressionNode node = (BinaryExpressionNode) expressionNode;
                 splitSentenceToSinglePredicateHelper(node.left, result);
                 splitSentenceToSinglePredicateHelper(node.right, result);
+                break;
             }
 
             default: {

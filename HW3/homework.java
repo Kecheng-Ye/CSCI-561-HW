@@ -7,7 +7,6 @@ public class homework {
         final String INPUT_FILE_PATH = "input.txt";
         final String OUTPUT_FILE_PATH = "output.txt";
 
-
         final KnowledgeBase KB = new KnowledgeBase();
         final InputParser.ParserResult parserResult = InputParser.parseFromFile(INPUT_FILE_PATH);
 

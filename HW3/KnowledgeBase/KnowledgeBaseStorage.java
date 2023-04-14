@@ -119,7 +119,9 @@ public class KnowledgeBaseStorage {
     public void addCNFSentence(final FOLExpressionNode expressionNode) {
         int sentenceId = sentencesArr.size();
 
-        if (isSentenceDuplicate(expressionNode)) return;
+        if (isSentenceDuplicate(expressionNode)) {
+            return;
+        }
 
         addSentenceIntoIndexing(expressionNode, sentenceId);
         sentencesArr.add(expressionNode);

@@ -1,6 +1,7 @@
 package KnowledgeBase;
 
 import FOLExpression.*;
+import Utils.RecursionLimiter;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -29,6 +30,8 @@ public class KnowledgeBase {
     }
 
     private boolean refute(final FOLExpressionNode predicateNode, final Set<FOLExpressionNode> onTrack) {
+        RecursionLimiter.emerge();
+
         assert KnowledgeBaseUtil.isSinglePredicate(predicateNode);
         if (onTrack.contains(predicateNode)) return false;
         onTrack.add(predicateNode);
@@ -72,6 +75,13 @@ public class KnowledgeBase {
                     } else {
                         // or we get more predicates to refute in order to refute the original predicate
                         final List<FOLExpressionNode> subPredicatesForRefute = KnowledgeBaseUtil.splitSentenceToSinglePredicate(sentenceAfterResolution);
+                        if (subPredicatesForRefute.stream()
+                                                  .filter(onTrack::contains)
+                                                  .findFirst()
+                                                  .orElse(null) != null) {
+                            break;
+                        }
+
                         boolean isSuccess = true;
                         for (final FOLExpressionNode onePredicate : subPredicatesForRefute) {
                             // if we failed to refute any one of them
