@@ -95,8 +95,8 @@ public class KnowledgeBaseUtil {
         }
     }
 
-    public static String getSinglePredicateName(final FOLExpressionNode expressionNode, boolean isPure) {
-        if (!isPure) {
+    public static String getSinglePredicateName(final FOLExpressionNode expressionNode, boolean onlyPredicateName) {
+        if (!onlyPredicateName) {
             return getSinglePredicateName(expressionNode);
         }
 
@@ -135,5 +135,15 @@ public class KnowledgeBaseUtil {
         } else {
             return ((NegatedSentenceNode)expressionNode).body;
         }
+    }
+
+    public static boolean isAllArgsConstant(final FOLExpressionNode expressionNode) {
+        assert isSinglePredicate(expressionNode);
+
+        return getSinglePredicateArgs(expressionNode)
+                .stream()
+                .filter(termNode -> termNode.body.type == FOLExpressionNodeType.VARIABLE)
+                .findFirst()
+                .orElse(null) == null;
     }
 }

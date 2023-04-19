@@ -26,15 +26,24 @@ public class KnowledgeBase {
         // onTrack used to detect refutation circle
         // A --> B --> A will be detected
         Set<FOLExpressionNode> onTrack = new HashSet<>();
-        return refute(KnowledgeBaseUtil.negateSinglePredicate(expressionNode), onTrack);
+        // hasProved used to record some predicate that has already been proved
+        // to prevent reproving same predicate multiple time
+        // Note: !!! only those predicates that have all Constant as its arguments will be recorded into hasProved
+        Map<FOLExpressionNode, Boolean> hasProved = new HashMap<>();
+        return refute(KnowledgeBaseUtil.negateSinglePredicate(expressionNode), onTrack, hasProved);
     }
 
-    private boolean refute(final FOLExpressionNode predicateNode, final Set<FOLExpressionNode> onTrack) {
-        RecursionLimiter.emerge();
-
+    private boolean refute(final FOLExpressionNode predicateNode, final Set<FOLExpressionNode> onTrack, final Map<FOLExpressionNode, Boolean> hasProved) {
+        // RecursionLimiter.emerge();
         assert KnowledgeBaseUtil.isSinglePredicate(predicateNode);
+
         if (onTrack.contains(predicateNode)) return false;
         onTrack.add(predicateNode);
+
+        final boolean isAllArgsConstant = KnowledgeBaseUtil.isAllArgsConstant(predicateNode);
+        if (isAllArgsConstant && hasProved.containsKey(predicateNode)) {
+            return hasProved.get(predicateNode);
+        }
 
         // try to negate each single predicate
         // and search if there is some sentence in the KB that contains that negate predicate
@@ -71,10 +80,12 @@ public class KnowledgeBase {
                         // we've reached a contradiction
                         // meaning we've successfully refuted the original predicate
                         onTrack.remove(predicateNode);
+                        if (isAllArgsConstant) hasProved.put(predicateNode, true);
                         return true;
                     } else {
                         // or we get more predicates to refute in order to refute the original predicate
                         final List<FOLExpressionNode> subPredicatesForRefute = KnowledgeBaseUtil.splitSentenceToSinglePredicate(sentenceAfterResolution);
+
                         if (subPredicatesForRefute.stream()
                                                   .filter(onTrack::contains)
                                                   .findFirst()
@@ -86,7 +97,7 @@ public class KnowledgeBase {
                         for (final FOLExpressionNode onePredicate : subPredicatesForRefute) {
                             // if we failed to refute any one of them
                             // then the whole refutation process for this branch is failed
-                            if (!refute(onePredicate, onTrack)) {
+                            if (!refute(onePredicate, onTrack, hasProved)) {
                                 isSuccess = false;
                                 break;
                             }
@@ -94,6 +105,7 @@ public class KnowledgeBase {
 
                         if (isSuccess) {
                             onTrack.remove(predicateNode);
+                            if (isAllArgsConstant) hasProved.put(predicateNode, true);
                             return true;
                         }
                     }
@@ -104,6 +116,7 @@ public class KnowledgeBase {
         }
 
         onTrack.remove(predicateNode);
+        if (isAllArgsConstant) hasProved.put(predicateNode, false);
         return false;
     }
 

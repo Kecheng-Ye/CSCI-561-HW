@@ -3,7 +3,7 @@ package FOLExpression;
 import java.util.Objects;
 
 public class VariableNode extends FOLExpressionNode{
-    public final String varName;
+    public String varName;
 
     public VariableNode(String varName) {
         super(FOLExpressionNodeType.VARIABLE);
